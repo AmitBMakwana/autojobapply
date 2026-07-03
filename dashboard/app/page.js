@@ -10,6 +10,12 @@ export default function RootPage() {
   const [stats, setStats] = useState(null);
   const [activeFaq, setActiveFaq] = useState(null);
 
+  // ROI Calculator states
+  const [appsPerMonth, setAppsPerMonth] = useState(40);
+
+  // Feature Walkthrough active tab
+  const [walkthroughTab, setWalkthroughTab] = useState('scout');
+
   // Client-side authentication check
   useEffect(() => {
     const loggedIn = localStorage.getItem('jobforge_logged_in') === 'true';
@@ -17,7 +23,6 @@ export default function RootPage() {
     setCheckingAuth(false);
 
     if (loggedIn) {
-      // Load overview statistics
       api.getStats()
         .then(data => setStats(data))
         .catch(() => setStats({ total: 1, saved: 0, tailored: 0, applied: 0, interviews: 0, offers: 0, rejections: 0 }));
@@ -29,8 +34,16 @@ export default function RootPage() {
     setIsLoggedIn(false);
   };
 
-  const toggleFaq = (index) => {
-    setActiveFaq(activeFaq === index ? null : index);
+  const calculateROISavedHours = () => {
+    // Manually: 30 minutes (1800s) per application. JobForge: 30 seconds.
+    // Hours saved = (applications * 29.5 mins) / 60
+    return Math.round((appsPerMonth * 29.5) / 60);
+  };
+
+  const calculateROIRecoveredDays = () => {
+    // 8-hour work day equivalent
+    const hours = calculateROISavedHours();
+    return (hours / 8).toFixed(1);
   };
 
   if (checkingAuth) {
@@ -45,108 +58,367 @@ export default function RootPage() {
   // --- VIEW 1: GUEST MARKETING LANDING PAGE ---
   if (!isLoggedIn) {
     return (
-      <div className="space-y-24 bg-[#0a0a0f] text-gray-200 min-h-screen font-sans w-full px-4 sm:px-8 lg:px-16 py-8 flex flex-col items-center">
+      <div className="space-y-32 bg-[#0a0a0f] text-gray-200 min-h-screen font-sans w-full px-4 sm:px-8 lg:px-16 py-8 flex flex-col items-center overflow-x-hidden">
         
         {/* Landing Navbar */}
-        <header className="flex justify-between items-center py-4 border-b border-white/5 max-w-7xl mx-auto">
+        <header className="flex justify-between items-center py-4 border-b border-white/5 w-full max-w-7xl mx-auto">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-cyan-400 flex items-center justify-center font-black text-xs text-white">
               JF
             </div>
             <span className="font-extrabold text-lg text-white">JobForge AI</span>
           </div>
-          <div className="flex items-center gap-6">
-            <Link href="/login" className="text-xs font-bold text-gray-400 hover:text-white uppercase tracking-wider">
-              Login
+          
+          <nav className="hidden md:flex items-center gap-8 text-xs font-bold text-gray-400 tracking-wider uppercase">
+            <a href="#how-it-works" className="hover:text-white transition">How It Works</a>
+            <a href="#roi-calculator" className="hover:text-white transition">ROI Calculator</a>
+            <a href="#pricing" className="hover:text-white transition">Pricing</a>
+            <a href="#faq" className="hover:text-white transition">FAQ</a>
+          </nav>
+
+          <div className="flex items-center gap-4">
+            <Link href="/login" className="text-xs font-bold text-gray-400 hover:text-white uppercase tracking-wider transition">
+              Sign In
             </Link>
             <Link href="/signup" className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold rounded-lg uppercase tracking-wider transition-all hover:scale-105 shadow-md shadow-emerald-500/10">
-              Sign Up
+              Get Started Free
             </Link>
           </div>
         </header>
 
         {/* Hero Section */}
-        <section className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <section className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center pt-8">
           <div className="lg:col-span-5 space-y-6 text-left">
-            <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">
-              Tailor Your Resume in <span className="bg-gradient-to-r from-purple-400 to-cyan-300 bg-clip-text text-transparent">30 Seconds</span>
+            <span className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[10px] rounded-full font-bold uppercase tracking-wider">
+              ⚡ 4x More Interview Callbacks
+            </span>
+            <h1 className="text-4xl sm:text-6xl font-black text-white leading-tight">
+              Tailor Your Resume in <span className="bg-gradient-to-r from-purple-400 via-violet-300 to-cyan-300 bg-clip-text text-transparent">30 Seconds</span>
             </h1>
             <p className="text-gray-400 text-sm sm:text-base leading-relaxed font-light">
-              Stop manually editing bullet points. Get ATS-optimized resumes and custom cover letters matched perfectly to any job description.
+              Stop manually editing bullet points. JobForge AI automatically parses job descriptions, scores match compatibility, and drafts tailored resumes and cover letters in one click.
             </p>
-            <Link
-              href="/signup"
-              className="inline-block px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold tracking-wider uppercase rounded-xl transition-all hover:scale-105 hover:shadow-lg shadow-emerald-500/10"
-            >
-              Get Started Free →
-            </Link>
+            <div className="flex flex-wrap gap-4 pt-2">
+              <Link
+                href="/signup"
+                className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold tracking-wider uppercase rounded-xl transition-all hover:scale-105 shadow-md shadow-emerald-500/10"
+              >
+                Get Started Free →
+              </Link>
+              <a
+                href="#how-it-works"
+                className="px-8 py-4 bg-white/5 hover:bg-white/10 text-white text-xs font-bold tracking-wider uppercase rounded-xl border border-white/5 transition"
+              >
+                👀 See How It Works
+              </a>
+            </div>
+            <div className="flex items-center gap-6 pt-4 text-xs text-gray-500">
+              <span>⭐ 4.9/5 Average Rating</span>
+              <span>•</span>
+              <span>160+ Job Seekers Hired</span>
+            </div>
           </div>
           
           {/* App Preview Image Mock */}
-          <div className="lg:col-span-7 rounded-2xl border border-white/5 bg-white/2 p-4 shadow-2xl relative overflow-hidden">
+          <div className="lg:col-span-7 rounded-3xl border border-white/5 bg-white/3 p-4 shadow-2xl relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/5 to-cyan-500/5 blur-3xl"></div>
-            <div className="relative rounded-xl border border-white/5 bg-gray-950/80 p-5 space-y-4">
+            <div className="relative rounded-2xl border border-white/5 bg-gray-950/80 p-5 space-y-4">
               <div className="flex items-center justify-between border-b border-white/5 pb-3">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-red-500"></div>
                   <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
                   <div className="w-3 h-3 rounded-full bg-green-500"></div>
                 </div>
-                <div className="text-xs text-gray-500">jobforge-dashboard/preview</div>
+                <span className="text-[10px] text-gray-600 font-bold uppercase tracking-wider font-mono">jobforge-ai-dashboard</span>
               </div>
               <div className="flex gap-4">
-                <div className="w-1/3 space-y-2">
-                  <div className="h-4 bg-purple-500/20 rounded-md w-3/4"></div>
-                  <div className="h-2.5 bg-white/5 rounded-md w-full"></div>
-                  <div className="h-2.5 bg-white/5 rounded-md w-5/6"></div>
-                </div>
-                <div className="flex-1 p-4 bg-white/2 border border-white/5 rounded-xl space-y-3">
-                  <div className="flex justify-between items-center">
-                    <div className="h-5 bg-white/10 rounded-md w-1/3"></div>
-                    <div className="h-6 bg-purple-500/25 border border-purple-500/30 text-purple-300 text-[10px] px-2.5 py-0.5 rounded-full font-bold">95% Match</div>
+                <div className="w-1/3 space-y-3 border-r border-white/5 pr-4">
+                  <div className="h-5 bg-purple-500/25 border border-purple-500/30 rounded-lg w-4/5"></div>
+                  <div className="space-y-1.5 pt-2">
+                    <div className="h-2.5 bg-white/10 rounded-md w-full"></div>
+                    <div className="h-2.5 bg-white/5 rounded-md w-5/6"></div>
+                    <div className="h-2.5 bg-white/5 rounded-md w-4/5"></div>
                   </div>
-                  <div className="h-2 bg-white/5 rounded-md w-full"></div>
-                  <div className="h-2 bg-white/5 rounded-md w-full"></div>
-                  <div className="h-2 bg-white/5 rounded-md w-2/3"></div>
+                </div>
+                <div className="flex-1 p-4 bg-white/2 border border-white/5 rounded-2xl space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-extrabold text-white">Full Stack Software Engineer</span>
+                    <span className="bg-purple-600/20 border border-purple-500/30 text-purple-300 text-[9px] px-2.5 py-0.5 rounded-full font-bold">95% FIT SCORE</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-2 bg-white/10 rounded-md w-full"></div>
+                    <div className="h-2 bg-white/10 rounded-md w-full"></div>
+                    <div className="h-2 bg-white/5 rounded-md w-3/4"></div>
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <div className="px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[8px] font-bold uppercase tracking-wider rounded">React</div>
+                    <div className="px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[8px] font-bold uppercase tracking-wider rounded">TypeScript</div>
+                    <div className="px-2 py-1 bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[8px] font-bold uppercase tracking-wider rounded">Docker</div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Extension Interactive Mock */}
-        <section className="max-w-4xl mx-auto text-center space-y-8">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">See It In Action</h2>
-            <p className="text-gray-400 mt-2 text-sm">Our extension parses requirements and scores roles in 1 click.</p>
+        {/* Feature Interactive Walkthrough */}
+        <section id="how-it-works" className="w-full max-w-7xl mx-auto space-y-12">
+          <div className="text-center space-y-3">
+            <h2 className="text-3xl font-extrabold text-white">How JobForge Streamlines Sourcing</h2>
+            <p className="text-gray-400 max-w-lg mx-auto text-xs">Four distinct pipeline stages designed to get you noticed by ATS recruiters.</p>
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            {/* Left Selector Tab List */}
+            <div className="lg:col-span-4 flex flex-col gap-2">
+              {[
+                { id: 'scout', title: '1. Autonomous Scouting', desc: 'Scan and pull live job listings from Lever, Greenhouse, Adzuna, and JSearch.' },
+                { id: 'score', title: '2. Fit Score Matches', desc: 'Gemini compares your profile to the JD, rating match percentages and tag overlaps.' },
+                { id: 'tailor', title: '3. Resume Tailoring', desc: 'Rewrites profile summaries and experience bullets emphasizing job requirements.' },
+                { id: 'autofill', title: '4. Form Autofill', desc: 'Uses Chrome V3 scripting to inject credentials and cover letters on application forms.' }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setWalkthroughTab(tab.id)}
+                  className={`p-4 rounded-xl border text-left transition-all ${
+                    walkthroughTab === tab.id
+                      ? 'bg-purple-600/10 border-purple-500/30 text-purple-200 shadow-md'
+                      : 'bg-white/2 border-white/5 text-gray-400 hover:text-gray-200 hover:bg-white/5'
+                  }`}
+                >
+                  <h4 className="text-sm font-bold">{tab.title}</h4>
+                  <p className="text-[11px] text-gray-500 mt-1 leading-relaxed font-light">{tab.desc}</p>
+                </button>
+              ))}
+            </div>
+
+            {/* Right Tab Content Mock display */}
+            <div className="lg:col-span-8 p-6 rounded-3xl glass-panel border-white/5 shadow-xl min-h-[250px] flex flex-col justify-center text-left">
+              {walkthroughTab === 'scout' && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-bold text-white">📡 Autonomous Scouting Aggregations</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed font-light">
+                    Instead of browsing job boards for hours, our aggregator automatically tracks your target job titles across major job sites and developer pipelines.
+                  </p>
+                  <div className="p-4 bg-gray-950/60 border border-white/5 rounded-xl space-y-2 font-mono text-[10px] text-gray-400">
+                    <p className="text-cyan-400">[Aggregator] Sourced 14 Software Engineer openings from Greenhouse API...</p>
+                    <p className="text-cyan-400">[Aggregator] Sourced 8 postings from Lever API...</p>
+                    <p className="text-purple-400">[Database] Deduped listings. Saved 18 unique vacancies in local cache.</p>
+                  </div>
+                </div>
+              )}
+              {walkthroughTab === 'score' && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-bold text-white">🎯 Dynamic Match Fit Assessments</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed font-light">
+                    Gemini cross-references each job description text against your master resume parameters, pinpointing match overlaps and highlighting missing keyword tags.
+                  </p>
+                  <div className="grid grid-cols-2 gap-4 pt-2">
+                    <div className="p-3 bg-white/2 border border-white/5 rounded-xl">
+                      <span className="text-[10px] text-emerald-400 font-bold block mb-1">Matched Keywords</span>
+                      <div className="flex flex-wrap gap-1">
+                        <span className="bg-emerald-500/10 text-emerald-400 text-[9px] px-1.5 py-0.5 rounded">FastAPI</span>
+                        <span className="bg-emerald-500/10 text-emerald-400 text-[9px] px-1.5 py-0.5 rounded">Python</span>
+                        <span className="bg-emerald-500/10 text-emerald-400 text-[9px] px-1.5 py-0.5 rounded">SQL</span>
+                      </div>
+                    </div>
+                    <div className="p-3 bg-white/2 border border-white/5 rounded-xl">
+                      <span className="text-[10px] text-orange-400 font-bold block mb-1">Missing Keywords</span>
+                      <div className="flex flex-wrap gap-1">
+                        <span className="bg-orange-500/10 text-orange-400 text-[9px] px-1.5 py-0.5 rounded">Docker</span>
+                        <span className="bg-orange-500/10 text-orange-400 text-[9px] px-1.5 py-0.5 rounded">Redis</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {walkthroughTab === 'tailor' && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-bold text-white">✨ Instant Resume Adjustments</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed font-light">
+                    Our generative engine rewrites your profile summaries and orders work history bullets to align with the vacancy description, emphasizing missing skills without making up facts.
+                  </p>
+                  <div className="p-4 bg-gray-950/60 border border-white/5 rounded-xl space-y-3 text-[11px]">
+                    <div className="flex justify-between font-bold text-gray-300">
+                      <span>Original Bullet</span>
+                      <span className="text-[#ef4444]">Deleted</span>
+                    </div>
+                    <p className="text-red-400/80 line-through">"Built backend services and managed server databases using SQL."</p>
+                    <div className="flex justify-between font-bold text-gray-300">
+                      <span>Tailored Bullet (Gemini Optimized)</span>
+                      <span className="text-emerald-400">Added</span>
+                    </div>
+                    <p className="text-emerald-400">"Designed scalable REST APIs using FastAPI and Python, caching database queries with Redis."</p>
+                  </div>
+                </div>
+              )}
+              {walkthroughTab === 'autofill' && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-bold text-white">🤖 Secure Page Inputs Autofill</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed font-light">
+                    The Chrome Extension injects your name, email, contact details, and tailored documents directly on standard input forms without hitting submission buttons autonomously.
+                  </p>
+                  <div className="flex items-center gap-3 p-3 bg-white/2 border border-white/5 rounded-xl">
+                    <span className="text-xs text-gray-400">Name input:</span>
+                    <span className="px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 rounded font-bold text-xs">John Doe</span>
+                    <span className="text-xs text-gray-400">Cover letter:</span>
+                    <span className="px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 rounded font-bold text-xs">Pre-filled</span>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </div>
+        </section>
+
+        {/* Interactive ROI Calculator */}
+        <section id="roi-calculator" className="w-full max-w-4xl mx-auto space-y-10 rounded-3xl p-8 md:p-12 glass-panel border-white/5 shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500/5 rounded-full blur-3xl -mr-10 -mt-10"></div>
           
-          <div className="rounded-2xl border border-white/5 bg-gray-950 p-6 shadow-xl max-w-xl mx-auto flex flex-col items-center gap-6">
-            <div className="flex items-center gap-3 w-full border-b border-white/5 pb-3">
-              <div className="w-6 h-6 rounded-md bg-purple-600 flex items-center justify-center font-bold text-[10px] text-white">JF</div>
-              <span className="font-bold text-sm text-white text-left flex-1">JobForge AI Assistant</span>
-              <span className="text-[10px] bg-white/5 border border-white/5 px-2 py-0.5 rounded text-gray-400 font-bold uppercase">Extension Active</span>
-            </div>
-            
-            <div className="w-16 h-16 rounded-full border-4 border-purple-500 flex items-center justify-center font-black text-2xl text-purple-400">
-              95%
-            </div>
-            
-            <div className="w-full text-left space-y-2">
-              <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block">Key Match Highlights</span>
-              <div className="p-3 bg-white/2 border border-white/5 rounded-xl text-xs text-gray-400 space-y-1">
-                <p>✓ Matching skills: React, TypeScript, Tailwind CSS</p>
-                <p>✓ Expected experience aligns with your profile history</p>
+          <div className="text-left space-y-3 border-b border-white/5 pb-6">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Productivity ROI Calculator</h2>
+            <p className="text-gray-400 text-xs font-light">Compare manual tracking and resume drafting hours against automated JobForge cycles.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center text-left">
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <div className="flex justify-between text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  <span>Applications Per Month</span>
+                  <span className="text-purple-400">{appsPerMonth} jobs</span>
+                </div>
+                <input
+                  type="range"
+                  min="5"
+                  max="100"
+                  value={appsPerMonth}
+                  onChange={(e) => setAppsPerMonth(parseInt(e.target.value))}
+                  className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                />
+              </div>
+              <div className="p-4 bg-white/2 border border-white/5 rounded-xl space-y-2 text-xs text-gray-400">
+                <p>💡 Manual: 20 minutes sourcing + tailoring per vacancy.</p>
+                <p>💡 JobForge: Under 30 seconds E2E including extension runs.</p>
               </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-5 rounded-2xl bg-purple-500/5 border border-purple-500/10 text-center">
+                <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider">Hours Saved</span>
+                <span className="text-3xl font-black text-purple-400 block mt-2">{calculateROISavedHours()} hrs</span>
+                <span className="text-[9px] text-gray-500 block mt-1">per month</span>
+              </div>
+              <div className="p-5 rounded-2xl bg-cyan-500/5 border border-cyan-500/10 text-center">
+                <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider">Days Recovered</span>
+                <span className="text-3xl font-black text-cyan-400 block mt-2">{calculateROIRecoveredDays()} days</span>
+                <span className="text-[9px] text-gray-500 block mt-1">work days equivalents</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Pricing Screen Design */}
+        <section id="pricing" className="w-full max-w-7xl mx-auto space-y-12">
+          <div className="text-center space-y-3">
+            <h2 className="text-3xl font-extrabold text-white">Transparent, Scalable Pricing</h2>
+            <p className="text-gray-400 max-w-lg mx-auto text-xs">Unlock unlimited tailors and analytics tracking with JobForge plans.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            
+            {/* Free */}
+            <div className="p-6 rounded-2xl bg-white/2 border border-white/5 flex flex-col justify-between text-left space-y-6">
+              <div className="space-y-3">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Free</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-black text-white">$0</span>
+                  <span className="text-xs text-gray-500 font-semibold">/month</span>
+                </div>
+                <ul className="text-xs text-gray-400 space-y-2 pt-3 border-t border-white/5 font-light">
+                  <li>• 6 job extractions/mo</li>
+                  <li>• 2 tailored resumes/mo</li>
+                  <li>• Basic ATS match scoring</li>
+                  <li>• Kanban tracking board</li>
+                </ul>
+              </div>
+              <Link href="/signup" className="w-full py-2.5 rounded-lg border border-white/10 hover:bg-white/5 text-xs font-bold text-center block text-white uppercase tracking-wider transition">
+                Start Free
+              </Link>
+            </div>
+
+            {/* Pro */}
+            <div className="p-6 rounded-2xl bg-[#13101c] border-2 border-purple-500/40 flex flex-col justify-between text-left space-y-6 relative shadow-[0_0_30px_rgba(139,92,246,0.1)]">
+              <span className="absolute top-0 right-4 -mt-3.5 bg-purple-600 border border-purple-400 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
+                ★ Most Popular
+              </span>
+              <div className="space-y-3">
+                <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider block">Pro</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-black text-white">$19</span>
+                  <span className="text-xs text-gray-500 font-semibold">/month</span>
+                </div>
+                <ul className="text-xs text-gray-200 space-y-2 pt-3 border-t border-purple-500/20 font-medium">
+                  <li>• Unlimited job extractions</li>
+                  <li>• Unlimited tailored resumes</li>
+                  <li>• Priority Gemini processing</li>
+                  <li>• Advanced keyword insights</li>
+                  <li>• Extension form autofills</li>
+                </ul>
+              </div>
+              <Link href="/signup" className="w-full py-2.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-xs font-bold text-center block text-white uppercase tracking-wider transition-all hover:scale-103">
+                Upgrade Pro
+              </Link>
+            </div>
+
+            {/* Elite */}
+            <div className="p-6 rounded-2xl bg-white/2 border border-white/5 flex flex-col justify-between text-left space-y-6">
+              <div className="space-y-3">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Elite</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-black text-white">$49</span>
+                  <span className="text-xs text-gray-500 font-semibold">/month</span>
+                </div>
+                <ul className="text-xs text-gray-400 space-y-2 pt-3 border-t border-white/5 font-light">
+                  <li>• Everything in Pro plan</li>
+                  <li>• Team collaboration roles</li>
+                  <li>• Custom tailoring parameters</li>
+                  <li>• Shared dashboard databases</li>
+                </ul>
+              </div>
+              <Link href="/signup" className="w-full py-2.5 rounded-lg border border-white/10 hover:bg-white/5 text-xs font-bold text-center block text-white uppercase tracking-wider transition">
+                Go Elite
+              </Link>
+            </div>
+
+            {/* Agency */}
+            <div className="p-6 rounded-2xl bg-white/2 border border-white/5 flex flex-col justify-between text-left space-y-6">
+              <div className="space-y-3">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Agency</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-black text-white">$99</span>
+                  <span className="text-xs text-gray-500 font-semibold">/month</span>
+                </div>
+                <ul className="text-xs text-gray-400 space-y-2 pt-3 border-t border-white/5 font-light">
+                  <li>• Unlimited client profiles</li>
+                  <li>• Custom domain white-labeling</li>
+                  <li>• REST API keys configuration</li>
+                  <li>• Dedicated support manager</li>
+                </ul>
+              </div>
+              <Link href="/signup" className="w-full py-2.5 rounded-lg border border-white/10 hover:bg-white/5 text-xs font-bold text-center block text-white uppercase tracking-wider transition">
+                Start Agency
+              </Link>
+            </div>
+
           </div>
         </section>
 
         {/* Testimonials */}
-        <section className="max-w-6xl mx-auto space-y-8">
+        <section className="w-full max-w-6xl mx-auto space-y-8">
           <div className="text-center">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Loved by Job Seekers</h2>
-            <p className="text-gray-400 mt-2 text-sm">Hear from engineers who automated their sourcing cycles.</p>
+            <h2 className="text-3xl font-extrabold text-white">Loved by Job Seekers</h2>
+            <p className="text-gray-400 mt-2 text-xs">Hear from developers who automated their document tailoring pipelines.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -156,7 +428,7 @@ export default function RootPage() {
               { name: 'Hyndhavi Madhu', stars: 5, comment: 'Streamlining of job search improved. This application is saving a lot of time and improved my quality of applications.' }
             ].map((t, idx) => (
               <div key={idx} className="p-6 rounded-2xl border border-white/5 bg-white/2 space-y-4 text-left">
-                <div className="flex gap-1 text-yellow-400">
+                <div className="flex gap-1 text-yellow-400 text-xs">
                   {Array.from({ length: t.stars }).map((_, i) => <span key={i}>★</span>)}
                 </div>
                 <p className="text-xs text-gray-400 italic leading-relaxed">"{t.comment}"</p>
@@ -172,8 +444,8 @@ export default function RootPage() {
         </section>
 
         {/* FAQs */}
-        <section className="max-w-3xl mx-auto space-y-8 text-left">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white text-center">Frequently Asked Questions</h2>
+        <section id="faq" className="w-full max-w-3xl mx-auto space-y-8 text-left">
+          <h2 className="text-3xl font-extrabold text-white text-center">Frequently Asked Questions</h2>
           <div className="space-y-4">
             {[
               { q: 'How does the resume matching work?', a: 'Our engine uses the Gemini API to analyze your master resume profile against the job description text, identifying keyword overlaps, skills gaps, and rating your compatibility.' },
@@ -183,7 +455,7 @@ export default function RootPage() {
               <div key={idx} className="border-b border-white/5 pb-4">
                 <button
                   onClick={() => toggleFaq(idx)}
-                  className="w-full flex justify-between items-center py-2 text-sm font-bold text-white hover:text-purple-400 transition cursor-pointer"
+                  className="w-full flex justify-between items-center py-2.5 text-sm font-bold text-white hover:text-purple-400 transition cursor-pointer"
                 >
                   <span>{faq.q}</span>
                   <span>{activeFaq === idx ? '−' : '+'}</span>
@@ -199,7 +471,7 @@ export default function RootPage() {
         </section>
 
         {/* Final CTA Banner */}
-        <section className="max-w-5xl mx-auto rounded-3xl p-10 md:p-14 bg-gradient-to-r from-purple-900/10 via-violet-950/5 to-cyan-950/5 border border-purple-500/15 shadow-2xl relative overflow-hidden text-center space-y-6">
+        <section className="w-full max-w-5xl mx-auto rounded-3xl p-10 md:p-14 bg-gradient-to-r from-purple-900/10 via-violet-950/5 to-cyan-950/5 border border-purple-500/15 shadow-2xl relative overflow-hidden text-center space-y-6">
           <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/5 to-cyan-500/5 blur-3xl"></div>
           <h2 className="text-2xl sm:text-3xl font-black text-white relative z-10">Ready to Land Your Dream Job?</h2>
           <p className="text-gray-400 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed relative z-10 font-light">
@@ -216,7 +488,7 @@ export default function RootPage() {
         </section>
 
         {/* Landing Footer */}
-        <footer className="py-8 border-t border-white/5 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-gray-500 text-[10px]">
+        <footer className="py-8 border-t border-white/5 w-full max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-gray-500 text-[10px]">
           <span>© 2026 JobForge AI. All rights reserved.</span>
           <div className="flex gap-6">
             <span className="hover:text-gray-400 cursor-pointer">Privacy Policy</span>

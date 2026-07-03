@@ -5,6 +5,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../backend/node_modules/.prisma/client"
 }
 
 model Profile {
@@ -18,7 +19,29 @@ model Profile {
   workHistory    String?  // JSON stringified array of objects
   education      String?  // JSON stringified array of objects
   certifications String?  // JSON stringified array
+  projects       String?  // JSON stringified array of objects
+  additionalInfo String?  // JSON stringified object (languages, hobbies)
   rawResumeText  String?
+  updatedAt      DateTime @updatedAt
+}
+
+model Resume {
+  id             String   @id @default(uuid())
+  name           String   @default("My Resume")
+  isDefault      Boolean  @default(false)
+  personName     String?
+  email          String?
+  phone          String?
+  location       String?
+  summary        String?
+  skills         String?  // JSON stringified array of {category, items[]}
+  workHistory    String?  // JSON stringified array of objects
+  education      String?  // JSON stringified array of objects
+  certifications String?  // JSON stringified array
+  projects       String?  // JSON stringified array of objects
+  additionalInfo String?  // JSON stringified object
+  rawResumeText  String?
+  createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
 

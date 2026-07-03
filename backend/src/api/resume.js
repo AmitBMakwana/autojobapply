@@ -66,6 +66,8 @@ router.post('/upload', upload.single('resume'), async (req, res) => {
         workHistory: JSON.stringify(parsedData.workHistory || []),
         education: JSON.stringify(parsedData.education || []),
         certifications: JSON.stringify(parsedData.certifications || []),
+        projects: JSON.stringify(parsedData.projects || []),
+        additionalInfo: JSON.stringify(parsedData.additionalInfo || {}),
         rawResumeText: rawText,
       },
       create: {
@@ -79,6 +81,8 @@ router.post('/upload', upload.single('resume'), async (req, res) => {
         workHistory: JSON.stringify(parsedData.workHistory || []),
         education: JSON.stringify(parsedData.education || []),
         certifications: JSON.stringify(parsedData.certifications || []),
+        projects: JSON.stringify(parsedData.projects || []),
+        additionalInfo: JSON.stringify(parsedData.additionalInfo || {}),
         rawResumeText: rawText,
       },
     });
@@ -91,6 +95,8 @@ router.post('/upload', upload.single('resume'), async (req, res) => {
         workHistory: JSON.parse(profile.workHistory),
         education: JSON.parse(profile.education),
         certifications: JSON.parse(profile.certifications),
+        projects: profile.projects ? JSON.parse(profile.projects) : [],
+        additionalInfo: profile.additionalInfo ? JSON.parse(profile.additionalInfo) : {},
       }
     });
   } catch (error) {
@@ -118,6 +124,8 @@ router.get('/profile', async (req, res) => {
       workHistory: JSON.parse(profile.workHistory || '[]'),
       education: JSON.parse(profile.education || '[]'),
       certifications: JSON.parse(profile.certifications || '[]'),
+      projects: JSON.parse(profile.projects || '[]'),
+      additionalInfo: JSON.parse(profile.additionalInfo || '{}'),
     });
   } catch (error) {
     console.error('Error fetching profile:', error);
@@ -130,7 +138,7 @@ router.get('/profile', async (req, res) => {
  */
 router.put('/profile', async (req, res) => {
   try {
-    const { name, email, phone, location, summary, skills, workHistory, education, certifications } = req.body;
+    const { name, email, phone, location, summary, skills, workHistory, education, certifications, projects, additionalInfo } = req.body;
 
     const profile = await prisma.profile.upsert({
       where: { id: 1 },
@@ -144,6 +152,8 @@ router.put('/profile', async (req, res) => {
         workHistory: JSON.stringify(workHistory || []),
         education: JSON.stringify(education || []),
         certifications: JSON.stringify(certifications || []),
+        projects: JSON.stringify(projects || []),
+        additionalInfo: JSON.stringify(additionalInfo || {}),
       },
       create: {
         id: 1,
@@ -156,6 +166,8 @@ router.put('/profile', async (req, res) => {
         workHistory: JSON.stringify(workHistory || []),
         education: JSON.stringify(education || []),
         certifications: JSON.stringify(certifications || []),
+        projects: JSON.stringify(projects || []),
+        additionalInfo: JSON.stringify(additionalInfo || {}),
       },
     });
 
@@ -167,6 +179,8 @@ router.put('/profile', async (req, res) => {
         workHistory: JSON.parse(profile.workHistory),
         education: JSON.parse(profile.education),
         certifications: JSON.parse(profile.certifications),
+        projects: profile.projects ? JSON.parse(profile.projects) : [],
+        additionalInfo: profile.additionalInfo ? JSON.parse(profile.additionalInfo) : {},
       }
     });
   } catch (error) {

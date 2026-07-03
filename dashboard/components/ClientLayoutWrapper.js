@@ -11,6 +11,22 @@ export default function ClientLayoutWrapper({ children }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [stats, setStats] = useState({ total: 0, applied: 0, tailored: 0 });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  // Close mobile-overlay on route change (on desktop keep open)
+  useEffect(() => {
+    // On desktop don't auto-close — just close mobile overlay
+    if (window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
+  }, [pathname]);
+
+  // Toggle sidebar listener
+  useEffect(() => {
+    const handleToggle = () => setIsSidebarOpen(prev => !prev);
+    window.addEventListener('toggle-sidebar', handleToggle);
+    return () => window.removeEventListener('toggle-sidebar', handleToggle);
+  }, []);
 
   // Update authentication state on route changes
   useEffect(() => {
@@ -62,11 +78,38 @@ export default function ClientLayoutWrapper({ children }) {
 
   // --- VIEW B: UNIFIED SYSTEM PANEL WITH LEFT SIDEBAR ---
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
+    <div className="w-full max-w-screen-2xl mx-auto animate-fade-in">
+      {/* Mobile backdrop overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      <div className="flex">
         
-        {/* Left Sidebar */}
-        <aside className="lg:col-span-3 flex flex-col gap-6 sticky top-24">
+        {/* ── Left Sidebar ── */}
+        {/* Mobile: fixed overlay; Desktop: collapsible inline column */}
+        <aside
+          className={`
+            fixed top-0 left-0 h-full w-[240px] bg-[#0a0a0f]/99 p-5 border-r border-white/5 z-50
+            flex flex-col gap-4 transition-transform duration-300 shadow-2xl
+            lg:static lg:shadow-none lg:bg-transparent lg:border-none
+            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:-translate-x-full lg:hidden lg:w-0'}
+          `}
+        >
+          {/* Close button inside mobile sidebar header */}
+          <div className="flex justify-between items-center lg:hidden border-b border-white/5 pb-3">
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Navigation Menu</span>
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="text-gray-400 hover:text-white p-1 rounded-lg text-sm font-bold cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+
           <div className="p-5 rounded-2xl glass-panel shadow-md space-y-4">
             <div className="flex flex-col gap-2">
               <Link
@@ -167,7 +210,7 @@ export default function ClientLayoutWrapper({ children }) {
         </aside>
 
         {/* Right Content Panel */}
-        <main className="lg:col-span-9 w-full flex flex-col">
+        <main className="flex-1 min-w-0 px-5 py-5">
           {children}
         </main>
 

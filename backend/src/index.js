@@ -27,6 +27,7 @@ app.use((req, res, next) => {
 
 // Import API Routers
 const resumeRouter = require('./api/resume');
+const resumesRouter = require('./api/resumes');
 const jobsRouter = require('./api/jobs');
 const scoreRouter = require('./api/score');
 const tailorRouter = require('./api/tailor');
@@ -42,6 +43,7 @@ process.env.RAPIDAPI_KEY = runtimeSettings.rapidApiKey || process.env.RAPIDAPI_K
 
 // Register API Routes
 app.use('/api/resume', resumeRouter);
+app.use('/api/resumes', resumesRouter);
 app.use('/api/jobs', jobsRouter);
 app.use('/api/score', scoreRouter);
 app.use('/api/tailor', tailorRouter);

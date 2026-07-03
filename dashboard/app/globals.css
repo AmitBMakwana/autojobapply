@@ -91,3 +91,40 @@ input:focus, textarea:focus, select:focus {
 .animate-fade-in {
   animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ─── Print / PDF export styles ─── */
+@media print {
+  /* Hide everything except the resume content */
+  body > * { display: none !important; }
+
+  /* Show only the print modal content */
+  body #resume-print,
+  body #resume-print * {
+    display: revert !important;
+    visibility: visible !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    font-family: 'Inter', Georgia, serif;
+    font-size: 11pt;
+  }
+
+  #resume-print {
+    position: fixed !important;
+    top: 0; left: 0;
+    width: 100%;
+    padding: 1.5cm 2cm;
+    background: white;
+    color: black;
+  }
+
+  /* Hide modal close/print buttons */
+  .print\:hidden { display: none !important; }
+
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}

@@ -25,7 +25,7 @@ export async function request(path, options = {}) {
 }
 
 export const api = {
-  // Profile
+  // Master Profile (legacy single profile)
   getProfile: () => request('/resume/profile'),
   uploadResume: (file) => {
     const formData = new FormData();
@@ -42,6 +42,32 @@ export const api = {
     method: 'PUT',
     body: JSON.stringify(profile),
   }),
+
+  // Multi-version Resumes
+  listResumes: () => request('/resumes'),
+  createResume: (name) => request('/resumes', {
+    method: 'POST',
+    body: JSON.stringify({ name }),
+  }),
+  getResume: (id) => request(`/resumes/${id}`),
+  updateResume: (id, data) => request(`/resumes/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  deleteResume: (id) => request(`/resumes/${id}`, { method: 'DELETE' }),
+  duplicateResume: (id) => request(`/resumes/${id}/duplicate`, { method: 'POST' }),
+  setDefaultResume: (id) => request(`/resumes/${id}/set-default`, { method: 'PUT' }),
+  uploadToResume: (id, file) => {
+    const formData = new FormData();
+    formData.append('resume', file);
+    return fetch(`${API_BASE}/resumes/${id}/upload`, {
+      method: 'POST',
+      body: formData,
+    }).then(res => {
+      if (!res.ok) throw new Error('Upload failed.');
+      return res.json();
+    });
+  },
 
   // Jobs
   getJobs: (params = {}) => {

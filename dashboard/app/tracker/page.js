@@ -113,7 +113,7 @@ export default function TrackerPage() {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in w-full">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
       
       {/* Top Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-4">

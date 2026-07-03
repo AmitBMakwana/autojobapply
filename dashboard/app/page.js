@@ -45,7 +45,7 @@ export default function RootPage() {
   // --- VIEW 1: GUEST MARKETING LANDING PAGE ---
   if (!isLoggedIn) {
     return (
-      <div className="space-y-24 bg-[#0a0a0f] text-gray-200 min-h-screen font-sans -mx-4 sm:-mx-6 lg:-mx-8 -my-8 px-4 sm:px-8 lg:px-16 py-8">
+      <div className="space-y-24 bg-[#0a0a0f] text-gray-200 min-h-screen font-sans w-full px-4 sm:px-8 lg:px-16 py-8 flex flex-col items-center">
         
         {/* Landing Navbar */}
         <header className="flex justify-between items-center py-4 border-b border-white/5 max-w-7xl mx-auto">
@@ -231,7 +231,8 @@ export default function RootPage() {
 
   // --- VIEW 2: LOGGED-IN SYSTEM OVERVIEW ---
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left animate-fade-in w-full">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left animate-fade-in w-full">
       
       {/* Left Sidebar */}
       <aside className="lg:col-span-3 flex flex-col gap-6">
@@ -404,7 +405,7 @@ export default function RootPage() {
         </div>
 
       </main>
-      
+          </div>
     </div>
   );
 }

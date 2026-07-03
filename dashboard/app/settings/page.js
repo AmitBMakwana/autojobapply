@@ -70,7 +70,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8 animate-fade-in text-left">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-3xl mx-auto space-y-8 animate-fade-in text-left">
       <div>
         <h1 className="text-3xl font-extrabold text-white">System Settings</h1>
         <p className="text-gray-400 mt-2">Manage API credentials, scanner preferences, and score thresholds.</p>
@@ -189,6 +190,7 @@ export default function SettingsPage() {
         </div>
 
       </form>
+    </div>
     </div>
   );
 }

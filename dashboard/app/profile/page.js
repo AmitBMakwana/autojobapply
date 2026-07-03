@@ -209,7 +209,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
       <div>
         <h1 className="text-3xl font-extrabold text-white">Resumes & Profile</h1>
         <p className="text-gray-400 mt-2">Manage your master portfolio data or parse a resume file to populate AI keyword matrices.</p>
@@ -577,6 +578,7 @@ export default function ProfilePage() {
 
         </form>
       )}
+    </div>
     </div>
   );
 }

@@ -16,6 +16,9 @@ export default function RootPage() {
   // Feature Walkthrough active tab
   const [walkthroughTab, setWalkthroughTab] = useState('scout');
 
+  // Chart hover state
+  const [hoveredChartIndex, setHoveredChartIndex] = useState(null);
+
   // Client-side authentication check
   useEffect(() => {
     const loggedIn = localStorage.getItem('jobforge_logged_in') === 'true';
@@ -540,8 +543,8 @@ export default function RootPage() {
             <p className="text-xs text-gray-500 mt-1">Track the number of jobs viewed and jobs applied over time</p>
           </div>
 
-          {/* Line Chart Grid Area (Responsive SVG) */}
-          <div className="w-full bg-gray-950/40 border border-white/5 rounded-xl p-4">
+          {/* Line Chart Grid Area (Responsive SVG with Hover Tooltips) */}
+          <div className="relative w-full bg-gray-950/40 border border-white/5 rounded-xl p-4">
             <svg viewBox="0 0 800 280" className="w-full h-auto">
               
               {/* Horizontal grid lines */}
@@ -558,48 +561,134 @@ export default function RootPage() {
 
               {/* X Axis dates */}
               <text x="50" y="255" fill="#475569" fontSize="10" textAnchor="middle">Jun 05</text>
+              <text x="108" y="255" fill="#475569" fontSize="10" textAnchor="middle">Jun 08</text>
               <text x="166" y="255" fill="#475569" fontSize="10" textAnchor="middle">Jun 11</text>
+              <text x="224" y="255" fill="#475569" fontSize="10" textAnchor="middle">Jun 14</text>
               <text x="282" y="255" fill="#475569" fontSize="10" textAnchor="middle">Jun 17</text>
+              <text x="340" y="255" fill="#475569" fontSize="10" textAnchor="middle">Jun 20</text>
               <text x="398" y="255" fill="#475569" fontSize="10" textAnchor="middle">Jun 23</text>
+              <text x="456" y="255" fill="#475569" fontSize="10" textAnchor="middle">Jun 26</text>
               <text x="514" y="255" fill="#475569" fontSize="10" textAnchor="middle">Jun 29</text>
               <text x="630" y="255" fill="#475569" fontSize="10" textAnchor="middle">Jul 02</text>
               <text x="746" y="255" fill="#475569" fontSize="10" textAnchor="middle">Jul 04</text>
 
-              {/* Line 1: Jobs Applied (cyan-500 / #06b6d4) - simulated points */}
+              {/* Line 1: Jobs Applied (cyan-500 / #06b6d4) */}
               <path
-                d="M 50 230 L 166 230 L 282 230 L 398 230 L 514 230 L 630 170 L 746 170"
+                d="M 50 230 L 108 230 L 166 230 L 224 230 L 282 230 L 340 230 L 398 230 L 456 230 L 514 230 L 630 170 L 746 170"
                 fill="none"
                 stroke="#06b6d4"
                 strokeWidth="2.5"
                 strokeLinecap="round"
               />
-              {/* Dots for Line 1 */}
-              <circle cx="50" cy="230" r="4.5" fill="#0a0a0f" stroke="#06b6d4" strokeWidth="2.5" />
-              <circle cx="166" cy="230" r="4.5" fill="#0a0a0f" stroke="#06b6d4" strokeWidth="2.5" />
-              <circle cx="282" cy="230" r="4.5" fill="#0a0a0f" stroke="#06b6d4" strokeWidth="2.5" />
-              <circle cx="398" cy="230" r="4.5" fill="#0a0a0f" stroke="#06b6d4" strokeWidth="2.5" />
-              <circle cx="514" cy="230" r="4.5" fill="#0a0a0f" stroke="#06b6d4" strokeWidth="2.5" />
-              <circle cx="630" cy="170" r="4.5" fill="#0a0a0f" stroke="#06b6d4" strokeWidth="2.5" />
-              <circle cx="746" cy="170" r="4.5" fill="#0a0a0f" stroke="#06b6d4" strokeWidth="2.5" />
 
-              {/* Line 2: Jobs Viewed (purple-500 / #8b5cf6) - simulated points */}
+              {/* Line 2: Jobs Viewed (purple-500 / #8b5cf6) */}
               <path
-                d="M 50 230 L 166 230 L 282 230 L 398 230 L 514 170 L 630 110 L 746 50"
+                d="M 50 230 L 108 230 L 166 230 L 224 230 L 282 230 L 340 230 L 398 230 L 456 230 L 514 170 L 630 110 L 746 50"
                 fill="none"
                 stroke="#8b5cf6"
                 strokeWidth="2.5"
                 strokeLinecap="round"
               />
-              {/* Dots for Line 2 */}
-              <circle cx="50" cy="230" r="4.5" fill="#0a0a0f" stroke="#8b5cf6" strokeWidth="2.5" />
-              <circle cx="166" cy="230" r="4.5" fill="#0a0a0f" stroke="#8b5cf6" strokeWidth="2.5" />
-              <circle cx="282" cy="230" r="4.5" fill="#0a0a0f" stroke="#8b5cf6" strokeWidth="2.5" />
-              <circle cx="398" cy="230" r="4.5" fill="#0a0a0f" stroke="#8b5cf6" strokeWidth="2.5" />
-              <circle cx="514" cy="170" r="4.5" fill="#0a0a0f" stroke="#8b5cf6" strokeWidth="2.5" />
-              <circle cx="630" cy="110" r="4.5" fill="#0a0a0f" stroke="#8b5cf6" strokeWidth="2.5" />
-              <circle cx="746" cy="50" r="4.5" fill="#0a0a0f" stroke="#8b5cf6" strokeWidth="2.5" />
+
+              {/* Data circles with hover effects */}
+              {[
+                { date: 'Jun 05', cx: 50, viewedY: 230, appliedY: 230, viewedCount: 0, appliedCount: 0 },
+                { date: 'Jun 08', cx: 108, viewedY: 230, appliedY: 230, viewedCount: 0, appliedCount: 0 },
+                { date: 'Jun 11', cx: 166, viewedY: 230, appliedY: 230, viewedCount: 0, appliedCount: 0 },
+                { date: 'Jun 14', cx: 224, viewedY: 230, appliedY: 230, viewedCount: 0, appliedCount: 0 },
+                { date: 'Jun 17', cx: 282, viewedY: 230, appliedY: 230, viewedCount: 0, appliedCount: 0 },
+                { date: 'Jun 20', cx: 340, viewedY: 230, appliedY: 230, viewedCount: 0, appliedCount: 0 },
+                { date: 'Jun 23', cx: 398, viewedY: 230, appliedY: 230, viewedCount: 0, appliedCount: 0 },
+                { date: 'Jun 26', cx: 456, viewedY: 230, appliedY: 230, viewedCount: 0, appliedCount: 0 },
+                { date: 'Jun 29', cx: 514, viewedY: 170, appliedY: 230, viewedCount: 1, appliedCount: 0 },
+                { date: 'Jul 02', cx: 630, viewedY: 110, appliedY: 170, viewedCount: 2, appliedCount: 1 },
+                { date: 'Jul 04', cx: 746, viewedY: 50, appliedY: 170, viewedCount: 3, appliedCount: 1 }
+              ].map((pt, idx) => (
+                <g key={idx}>
+                  {/* Cyan circles */}
+                  <circle
+                    cx={pt.cx}
+                    cy={pt.appliedY}
+                    r={hoveredChartIndex === idx ? 6 : 4}
+                    fill="#0a0a0f"
+                    stroke="#06b6d4"
+                    strokeWidth="2.5"
+                    className="transition-all duration-150"
+                  />
+                  {/* Purple circles */}
+                  <circle
+                    cx={pt.cx}
+                    cy={pt.viewedY}
+                    r={hoveredChartIndex === idx ? 6 : 4}
+                    fill="#0a0a0f"
+                    stroke="#8b5cf6"
+                    strokeWidth="2.5"
+                    className="transition-all duration-150"
+                  />
+                  {/* Invisible rect trigger bar */}
+                  <rect
+                    x={pt.cx - 20}
+                    y={0}
+                    width={40}
+                    height={280}
+                    fill="transparent"
+                    className="cursor-pointer"
+                    onMouseEnter={() => setHoveredChartIndex(idx)}
+                    onMouseLeave={() => setHoveredChartIndex(null)}
+                  />
+                </g>
+              ))}
 
             </svg>
+
+            {/* Absolute hovering Tooltip Popup */}
+            {hoveredChartIndex !== null && (
+              <div
+                className="absolute bg-[#121218] border border-white/10 rounded-xl p-3.5 shadow-2xl text-[11px] space-y-1.5 z-50 pointer-events-none select-none transition-all duration-150"
+                style={{
+                  left: `calc(${([
+                    { cx: 50, viewedY: 230 },
+                    { cx: 108, viewedY: 230 },
+                    { cx: 166, viewedY: 230 },
+                    { cx: 224, viewedY: 230 },
+                    { cx: 282, viewedY: 230 },
+                    { cx: 340, viewedY: 230 },
+                    { cx: 398, viewedY: 230 },
+                    { cx: 456, viewedY: 230 },
+                    { cx: 514, viewedY: 170 },
+                    { cx: 630, viewedY: 110 },
+                    { cx: 746, viewedY: 50 }
+                  ][hoveredChartIndex].cx / 800) * 100}% - 70px)`,
+                  top: `calc(${([
+                    { cx: 50, viewedY: 230 },
+                    { cx: 108, viewedY: 230 },
+                    { cx: 166, viewedY: 230 },
+                    { cx: 224, viewedY: 230 },
+                    { cx: 282, viewedY: 230 },
+                    { cx: 340, viewedY: 230 },
+                    { cx: 398, viewedY: 230 },
+                    { cx: 456, viewedY: 230 },
+                    { cx: 514, viewedY: 170 },
+                    { cx: 630, viewedY: 110 },
+                    { cx: 746, viewedY: 50 }
+                  ][hoveredChartIndex].viewedY / 280) * 100}% - 90px)`
+                }}
+              >
+                <div className="font-extrabold text-white mb-1.5 border-b border-white/5 pb-1">
+                  {[
+                    'Jun 05', 'Jun 08', 'Jun 11', 'Jun 14', 'Jun 17', 'Jun 20', 'Jun 23', 'Jun 26', 'Jun 29', 'Jul 02', 'Jul 04'
+                  ][hoveredChartIndex]}
+                </div>
+                <div className="flex items-center gap-2 text-gray-400">
+                  <span className="w-2.5 h-2.5 rounded-full bg-purple-500 block"></span>
+                  <span>Jobs Viewed: <strong className="text-white">{[0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3][hoveredChartIndex]}</strong></span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-400">
+                  <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 block"></span>
+                  <span>Jobs Applied: <strong className="text-white">{[0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1][hoveredChartIndex]}</strong></span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Chart Legends */}

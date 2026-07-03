@@ -20,6 +20,10 @@ export default function SettingsPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (localStorage.getItem('jobforge_logged_in') !== 'true') {
+      window.location.href = '/login';
+      return;
+    }
     async function loadSettings() {
       try {
         const data = await api.getSettings();

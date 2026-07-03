@@ -12,6 +12,10 @@ export default function ProfilePage() {
   const [successMsg, setSuccessMsg] = useState('');
 
   useEffect(() => {
+    if (localStorage.getItem('jobforge_logged_in') !== 'true') {
+      window.location.href = '/login';
+      return;
+    }
     async function loadProfile() {
       try {
         const data = await api.getProfile();

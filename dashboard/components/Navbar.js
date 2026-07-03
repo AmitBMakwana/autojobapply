@@ -1,10 +1,25 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
   const pathname = usePathname();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // Check local storage auth
+    const logged = localStorage.getItem('jobforge_logged_in') === 'true';
+    setIsLoggedIn(logged);
+    
+    // Listen for custom login/logout storage changes
+    const handleStorageChange = () => {
+      setIsLoggedIn(localStorage.getItem('jobforge_logged_in') === 'true');
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [pathname]);
 
   const navItems = [
     { name: 'Dashboard', href: '/' },
@@ -13,6 +28,8 @@ export default function Navbar() {
     { name: 'My Profile', href: '/profile' },
     { name: 'Settings', href: '/settings' },
   ];
+
+  if (!isLoggedIn) return null;
 
   return (
     <nav className="sticky top-0 z-50 glass-panel border-b border-white/5 py-4 px-6 md:px-12 flex justify-between items-center shadow-2xl">

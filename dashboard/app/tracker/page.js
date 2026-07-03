@@ -40,6 +40,10 @@ export default function TrackerPage() {
   };
 
   useEffect(() => {
+    if (localStorage.getItem('jobforge_logged_in') !== 'true') {
+      window.location.href = '/login';
+      return;
+    }
     loadTrackerData();
   }, []);
 

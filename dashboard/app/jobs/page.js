@@ -29,6 +29,10 @@ export default function JobsPage() {
   const initialized = useRef(false);
 
   useEffect(() => {
+    if (localStorage.getItem('jobforge_logged_in') !== 'true') {
+      window.location.href = '/login';
+      return;
+    }
     async function loadJobs() {
       try {
         setLoading(true);

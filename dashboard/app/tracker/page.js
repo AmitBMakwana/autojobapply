@@ -6,12 +6,12 @@ import { api } from '@/lib/api';
 const COLUMNS = ['Saved', 'Tailored', 'Applied', 'Interview', 'Offer', 'Rejected'];
 
 const COLUMN_COLORS = {
-  Saved: 'border-t-blue-500 bg-blue-500/5',
-  Tailored: 'border-t-purple-500 bg-purple-500/5',
-  Applied: 'border-t-emerald-500 bg-emerald-500/5',
-  Interview: 'border-t-yellow-500 bg-yellow-500/5',
-  Offer: 'border-t-rose-500 bg-rose-500/5',
-  Rejected: 'border-t-gray-500 bg-gray-500/5'
+  Saved: 'border-t-indigo-500 bg-indigo-500/3',
+  Tailored: 'border-t-purple-500 bg-purple-500/3',
+  Applied: 'border-t-cyan-500 bg-cyan-500/3',
+  Interview: 'border-t-yellow-500 bg-yellow-500/3',
+  Offer: 'border-t-emerald-500 bg-emerald-500/3',
+  Rejected: 'border-t-rose-500 bg-rose-500/3'
 };
 
 export default function TrackerPage() {
@@ -45,7 +45,7 @@ export default function TrackerPage() {
 
   const handleStatusChange = async (jobId, newStatus) => {
     try {
-      const appliedDate = newStatus === 'Applied' ? new Date().toISOString() : undefined;
+      const appliedDate = newStatus === 'Applied' ? new Date().toISOString() : null;
       await api.updateJob(jobId, { status: newStatus, appliedDate });
       
       // Update local states directly for instant updates
@@ -102,7 +102,7 @@ export default function TrackerPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <div className="w-12 h-12 rounded-full border-4 border-cyan-500/20 border-t-cyan-400 animate-spin"></div>
+        <div className="w-12 h-12 rounded-full border-4 border-purple-500/20 border-t-purple-400 animate-spin"></div>
         <p className="text-gray-400 font-medium">Loading tracker...</p>
       </div>
     );
@@ -112,26 +112,26 @@ export default function TrackerPage() {
     <div className="space-y-8 animate-fade-in w-full">
       
       {/* Top Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-4">
         <div>
           <h1 className="text-3xl font-extrabold text-white">Job Tracker</h1>
           <p className="text-gray-400 mt-1">Manage and track your active job application lifecycle.</p>
         </div>
         
         {/* Toggle between Board and List views */}
-        <div className="flex rounded-xl bg-gray-900/80 p-1 border border-gray-800 shrink-0 self-start">
+        <div className="flex rounded-xl bg-gray-900/80 p-1 border border-white/5 shrink-0 self-start">
           <button
             onClick={() => setViewMode('list')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition ${
-              viewMode === 'list' ? 'bg-[#00b894] text-white shadow-md' : 'text-gray-400 hover:text-white'
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+              viewMode === 'list' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white'
             }`}
           >
             📋 List View
           </button>
           <button
             onClick={() => setViewMode('board')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition ${
-              viewMode === 'board' ? 'bg-[#00b894] text-white shadow-md' : 'text-gray-400 hover:text-white'
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+              viewMode === 'board' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white'
             }`}
           >
             📊 Kanban Board
@@ -150,14 +150,14 @@ export default function TrackerPage() {
         <div className="space-y-6">
           
           {/* Status Tabs */}
-          <div className="flex flex-wrap gap-2 border-b border-gray-800 pb-1 overflow-x-auto">
+          <div className="flex flex-wrap gap-2 border-b border-white/5 pb-1 overflow-x-auto">
             {['ALL', ...COLUMNS.map(c => c.toUpperCase())].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`pb-3 px-4 text-xs font-bold tracking-wider relative transition-all uppercase border-b-2 cursor-pointer ${
                   activeTab === tab
-                    ? 'text-[#00b894] border-[#00b894]'
+                    ? 'text-purple-400 border-purple-400'
                     : 'text-gray-500 border-transparent hover:text-gray-300'
                 }`}
               >
@@ -174,16 +174,16 @@ export default function TrackerPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search jobs by title, company, or location..."
-                className="w-full pl-10 pr-4 py-3 bg-[#11131a] border border-gray-800 focus:border-[#00b894] rounded-xl text-gray-200 text-sm focus:outline-none transition"
+                className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
               />
               <span className="absolute left-3.5 top-3.5 text-gray-500">🔍</span>
             </div>
           </div>
 
           {/* Job Applications Table */}
-          <div className="overflow-x-auto rounded-2xl border border-gray-800 bg-[#11131a]/60 shadow-lg">
+          <div className="overflow-x-auto rounded-2xl border border-white/5 bg-[#11131a]/60 shadow-lg">
             <table className="w-full border-collapse text-left text-sm text-gray-300">
-              <thead className="bg-[#11131a] border-b border-gray-800 text-xs font-bold uppercase tracking-wider text-gray-400">
+              <thead className="bg-[#11131a] border-b border-white/5 text-xs font-bold uppercase tracking-wider text-gray-400">
                 <tr>
                   <th className="px-6 py-4">Position / Role</th>
                   <th className="px-6 py-4">Company</th>
@@ -192,17 +192,17 @@ export default function TrackerPage() {
                   <th className="px-6 py-4">Interview Stage</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800/60 font-light">
+              <tbody className="divide-y divide-white/5 font-light">
                 {filteredListJobs.length > 0 ? (
                   filteredListJobs.map((job) => (
-                    <tr key={job.id} className="hover:bg-gray-800/10 transition-colors">
+                    <tr key={job.id} className="hover:bg-white/3 transition-colors">
                       <td className="px-6 py-4 font-bold text-gray-200">
                         {job.url ? (
                           <a
                             href={job.url}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-[#00aec8] hover:text-[#00c7e4] hover:underline"
+                            className="text-cyan-400 hover:text-cyan-300 hover:underline"
                           >
                             {job.title}
                           </a>
@@ -215,7 +215,7 @@ export default function TrackerPage() {
                       </td>
                       <td className="px-6 py-4 font-medium text-gray-300">{job.company}</td>
                       <td className="px-6 py-4">
-                        <span className="px-2.5 py-1 bg-gray-900 border border-gray-800 text-xs rounded-md text-gray-400">
+                        <span className="px-2.5 py-1 bg-gray-900 border border-white/5 text-xs rounded-md text-gray-400">
                           {job.location || 'Not specified'}
                         </span>
                       </td>
@@ -236,7 +236,7 @@ export default function TrackerPage() {
                         <select
                           value={job.status}
                           onChange={(e) => handleStatusChange(job.id, e.target.value)}
-                          className="bg-gray-900 border border-gray-800 text-xs py-1.5 px-3 rounded-lg text-gray-300 outline-none cursor-pointer hover:border-gray-700 transition"
+                          className="bg-gray-900 border border-white/5 text-xs py-1.5 px-3 rounded-lg text-gray-300 outline-none cursor-pointer hover:border-gray-700 transition"
                         >
                           {COLUMNS.map(c => (
                             <option key={c} value={c}>{c}</option>
@@ -266,12 +266,12 @@ export default function TrackerPage() {
             return (
               <div
                 key={colName}
-                className={`flex-1 min-w-[280px] max-w-[320px] rounded-2xl border-t-4 border border-gray-800/80 p-4 flex flex-col gap-4 shadow-md ${COLUMN_COLORS[colName]}`}
+                className={`flex-1 min-w-[280px] max-w-[320px] rounded-2xl border-t-4 border border-white/5 p-4 flex flex-col gap-4 shadow-md ${COLUMN_COLORS[colName]}`}
               >
                 {/* Column Header */}
-                <div className="flex justify-between items-center border-b border-gray-800 pb-2">
+                <div className="flex justify-between items-center border-b border-white/5 pb-2">
                   <span className="font-extrabold text-sm tracking-wide text-gray-200 uppercase">{colName}</span>
-                  <span className="bg-gray-800 border border-gray-700 text-xs px-2.5 py-0.5 rounded-full font-bold text-gray-400">
+                  <span className="bg-gray-800 border border-white/5 text-xs px-2.5 py-0.5 rounded-full font-bold text-gray-400">
                     {colJobs.length}
                   </span>
                 </div>
@@ -282,21 +282,21 @@ export default function TrackerPage() {
                     colJobs.map((job) => (
                       <div
                         key={job.id}
-                        className="p-4 rounded-xl bg-[#11131a] border border-gray-800/80 hover:border-gray-700 transition shadow-sm space-y-3"
+                        className="p-4 rounded-xl bg-gray-900/60 border border-white/5 hover:border-gray-700 transition shadow-sm space-y-3"
                       >
                         <div>
                           <h4 className="font-bold text-sm text-gray-200 line-clamp-1">{job.title}</h4>
-                          <p className="text-xs text-[#00b894] mt-0.5 font-semibold truncate">{job.company}</p>
+                          <p className="text-xs text-purple-400 mt-0.5 font-semibold truncate">{job.company}</p>
                         </div>
 
                         <div className="flex justify-between items-center">
-                          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider bg-gray-900 border border-gray-800 px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider bg-gray-900 border border-white/5 px-1.5 py-0.5 rounded">
                             {job.source}
                           </span>
                           {job.fitScore !== null && (
                             <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded border ${
                               job.fitScore >= 85
-                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                                ? 'bg-purple-500/10 border-purple-500/20 text-purple-400'
                                 : 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400'
                             }`}>
                               {job.fitScore}% Fit
@@ -305,12 +305,12 @@ export default function TrackerPage() {
                         </div>
 
                         {/* Quick Move Selector */}
-                        <div className="pt-2 border-t border-gray-800/50 flex gap-2 justify-between items-center">
+                        <div className="pt-2 border-t border-white/5 flex gap-2 justify-between items-center">
                           <label className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Move to:</label>
                           <select
                             value={job.status}
                             onChange={(e) => handleStatusChange(job.id, e.target.value)}
-                            className="bg-gray-900 border border-gray-800 text-[10px] px-1.5 py-0.5 rounded text-gray-300 outline-none cursor-pointer"
+                            className="bg-gray-900 border border-white/5 text-[10px] px-1.5 py-0.5 rounded text-gray-300 outline-none cursor-pointer"
                           >
                             {COLUMNS.map(c => (
                               <option key={c} value={c}>{c}</option>
@@ -320,7 +320,7 @@ export default function TrackerPage() {
                       </div>
                     ))
                   ) : (
-                    <div className="flex-1 border border-dashed border-gray-800/60 rounded-xl flex items-center justify-center py-12 text-xs text-gray-600 font-semibold italic text-center">
+                    <div className="flex-1 border border-dashed border-white/5 rounded-xl flex items-center justify-center py-12 text-xs text-gray-600 font-semibold italic text-center">
                       Empty Column
                     </div>
                   )}

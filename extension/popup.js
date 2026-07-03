@@ -185,14 +185,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     scoreVal.innerText = currentJob.fitScore !== null ? `${currentJob.fitScore}%` : '--';
     
     if (currentJob.fitScore >= 80) {
-      scoreVal.style.color = '#10b981';
-      document.getElementById('score-badge').style.borderColor = '#10b981';
+      scoreVal.style.color = '#8b5cf6';
+      document.getElementById('score-badge').style.borderColor = '#8b5cf6';
     } else if (currentJob.fitScore >= 60) {
-      scoreVal.style.color = '#00aec8';
-      document.getElementById('score-badge').style.borderColor = '#00aec8';
+      scoreVal.style.color = '#06b6d4';
+      document.getElementById('score-badge').style.borderColor = '#06b6d4';
     } else {
-      scoreVal.style.color = '#f59e0b';
-      document.getElementById('score-badge').style.borderColor = '#f59e0b';
+      scoreVal.style.color = '#f97316';
+      document.getElementById('score-badge').style.borderColor = '#f97316';
     }
 
     // 2. Rationale / Key Highlights (split paragraph into sentences)

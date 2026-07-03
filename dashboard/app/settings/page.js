@@ -59,17 +59,17 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <div className="w-12 h-12 rounded-full border-4 border-cyan-500/20 border-t-cyan-400 animate-spin"></div>
+        <div className="w-12 h-12 rounded-full border-4 border-purple-500/20 border-t-purple-400 animate-spin"></div>
         <p className="text-gray-400 font-medium">Loading settings...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8 animate-fade-in">
+    <div className="max-w-3xl mx-auto space-y-8 animate-fade-in text-left">
       <div>
         <h1 className="text-3xl font-extrabold text-white">System Settings</h1>
-        <p className="text-gray-400 mt-2">Manage API keys, environment variables, and job scan default preferences.</p>
+        <p className="text-gray-400 mt-2">Manage API credentials, scanner preferences, and score thresholds.</p>
       </div>
 
       {error && (
@@ -86,86 +86,86 @@ export default function SettingsPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         
         {/* API Credentials */}
-        <div className="p-6 rounded-2xl bg-[#11131a] border border-gray-800/80 shadow-md space-y-6">
-          <h3 className="text-lg font-bold text-white border-b border-gray-800 pb-2">API Credentials</h3>
+        <div className="p-6 rounded-2xl glass-panel shadow-md space-y-6">
+          <h3 className="text-lg font-bold text-white border-b border-white/5 pb-2">API Credentials</h3>
           
           <div className="space-y-2">
-            <label className="text-xs font-bold text-gray-400 tracking-wider uppercase block">Gemini API Key</label>
+            <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">Gemini API Key</label>
             <input
               type="password"
               value={settings.geminiApiKey}
               onChange={(e) => handleChange('geminiApiKey', e.target.value)}
-              className="w-full px-4 py-3 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
+              className="w-full px-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
               required
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-400 tracking-wider uppercase block">Adzuna App ID</label>
+              <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">Adzuna App ID</label>
               <input
                 type="text"
                 value={settings.adzunaAppId}
                 onChange={(e) => handleChange('adzunaAppId', e.target.value)}
-                className="w-full px-4 py-3 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
+                className="w-full px-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-400 tracking-wider uppercase block">Adzuna API Key</label>
+              <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">Adzuna API Key</label>
               <input
                 type="password"
                 value={settings.adzunaApiKey}
                 onChange={(e) => handleChange('adzunaApiKey', e.target.value)}
-                className="w-full px-4 py-3 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
+                className="w-full px-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold text-gray-400 tracking-wider uppercase block">JSearch (RapidAPI) Key</label>
+            <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">JSearch (RapidAPI) Key</label>
             <input
               type="password"
               value={settings.rapidApiKey}
               onChange={(e) => handleChange('rapidApiKey', e.target.value)}
-              className="w-full px-4 py-3 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
+              className="w-full px-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
             />
           </div>
         </div>
 
         {/* Aggregator Preferences */}
-        <div className="p-6 rounded-2xl bg-[#11131a] border border-gray-800/80 shadow-md space-y-6">
-          <h3 className="text-lg font-bold text-white border-b border-gray-800 pb-2">Aggregation Preferences</h3>
+        <div className="p-6 rounded-2xl glass-panel shadow-md space-y-6">
+          <h3 className="text-lg font-bold text-white border-b border-white/5 pb-2">Aggregation Preferences</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-400 tracking-wider uppercase block">Default Job Title Query</label>
+              <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">Default Job Title Query</label>
               <input
                 type="text"
                 value={settings.defaultJobTitle}
                 onChange={(e) => handleChange('defaultJobTitle', e.target.value)}
-                className="w-full px-4 py-3 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
+                className="w-full px-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-400 tracking-wider uppercase block">Default Search Location</label>
+              <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">Default Search Location</label>
               <input
                 type="text"
                 value={settings.defaultLocation}
                 onChange={(e) => handleChange('defaultLocation', e.target.value)}
-                className="w-full px-4 py-3 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
+                className="w-full px-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold text-gray-400 tracking-wider uppercase block">Minimum Fit Score Match Threshold ({settings.minFitScore}%)</label>
+            <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">Minimum Fit Score Match Threshold ({settings.minFitScore}%)</label>
             <input
               type="range"
               min="0"
               max="100"
               value={settings.minFitScore}
               onChange={(e) => handleChange('minFitScore', e.target.value)}
-              className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+              className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
             />
           </div>
         </div>
@@ -174,10 +174,10 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={saving}
-            className={`px-8 py-4 rounded-xl font-bold text-sm tracking-wider shadow-lg transition-all duration-300 border cursor-pointer ${
+            className={`px-8 py-4 rounded-xl font-bold text-xs tracking-wider uppercase shadow-lg transition-all duration-300 border cursor-pointer ${
               saving
-                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30'
-                : 'bg-cyan-500 border-cyan-500 hover:bg-cyan-400 text-black hover:scale-105 shadow-cyan-500/10 hover:shadow-cyan-500/20'
+                ? 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+                : 'bg-purple-600 border-purple-600 hover:bg-purple-500 text-white hover:scale-105 shadow-purple-500/20'
             }`}
           >
             {saving ? 'Saving Config...' : 'Apply System Config'}

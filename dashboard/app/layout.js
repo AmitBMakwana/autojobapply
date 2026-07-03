@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "ApplyAI Assistant",
+  title: "JobForge AI",
   description: "Autonomous Job Search and Resume Tailoring Suite",
 };
 
@@ -24,7 +24,7 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-[#08090d] text-gray-100 font-sans flex flex-col">
+      <body className="min-h-full bg-[#0a0a0f] text-[#f8fafc] font-sans flex flex-col">
         <Navbar />
         <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {children}

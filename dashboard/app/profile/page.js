@@ -17,8 +17,7 @@ export default function ProfilePage() {
         const data = await api.getProfile();
         setProfile(data);
       } catch (err) {
-        // Ignored if no profile exists yet
-        console.log(err.message);
+        console.log('No profile uploaded yet');
       } finally {
         setLoading(false);
       }
@@ -34,12 +33,11 @@ export default function ProfilePage() {
       setUploading(true);
       setError('');
       setSuccessMsg('');
-      
-      const res = await api.uploadResume(file);
-      setProfile(res.profile);
-      setSuccessMsg('Resume parsed and profile loaded successfully!');
+      const data = await api.uploadResume(file);
+      setProfile(data.profile);
+      setSuccessMsg('Resume parsed and master profile loaded successfully!');
     } catch (err) {
-      setError('Failed to parse resume: ' + err.message);
+      setError(err.message || 'Failed to parse resume.');
     } finally {
       setUploading(false);
     }
@@ -52,26 +50,131 @@ export default function ProfilePage() {
     }));
   };
 
-  const handleListChange = (field, index, key, value) => {
+  const handleWorkChange = (index, field, value) => {
     setProfile(prev => {
-      const list = [...prev[field]];
-      list[index] = { ...list[index], [key]: value };
-      return { ...prev, [field]: list };
+      const history = [...prev.workHistory];
+      history[index] = { ...history[index], [field]: value };
+      return { ...prev, workHistory: history };
     });
   };
 
-  const addListItem = (field, defaultObj) => {
+  const handleWorkBulletChange = (workIdx, bulletIdx, value) => {
+    setProfile(prev => {
+      const history = [...prev.workHistory];
+      const bullets = [...history[workIdx].bullets];
+      bullets[bulletIdx] = value;
+      history[workIdx] = { ...history[workIdx], bullets };
+      return { ...prev, workHistory: history };
+    });
+  };
+
+  const addWorkBullet = (workIdx) => {
+    setProfile(prev => {
+      const history = [...prev.workHistory];
+      const bullets = [...(history[workIdx].bullets || []), ''];
+      history[workIdx] = { ...history[workIdx], bullets };
+      return { ...prev, workHistory: history };
+    });
+  };
+
+  const removeWorkBullet = (workIdx, bulletIdx) => {
+    setProfile(prev => {
+      const history = [...prev.workHistory];
+      const bullets = [...history[workIdx].bullets];
+      bullets.splice(bulletIdx, 1);
+      history[workIdx] = { ...history[workIdx], bullets };
+      return { ...prev, workHistory: history };
+    });
+  };
+
+  const addWorkExperience = () => {
     setProfile(prev => ({
       ...prev,
-      [field]: [...(prev[field] || []), defaultObj]
+      workHistory: [
+        ...(prev.workHistory || []),
+        { company: '', title: '', dates: '', bullets: [''] }
+      ]
     }));
   };
 
-  const removeListItem = (field, index) => {
+  const removeWorkExperience = (index) => {
+    setProfile(prev => {
+      const history = [...prev.workHistory];
+      history.splice(index, 1);
+      return { ...prev, workHistory: history };
+    });
+  };
+
+  const handleEducationChange = (index, field, value) => {
+    setProfile(prev => {
+      const edu = [...prev.education];
+      edu[index] = { ...edu[index], [field]: value };
+      return { ...prev, education: edu };
+    });
+  };
+
+  const addEducation = () => {
     setProfile(prev => ({
       ...prev,
-      [field]: prev[field].filter((_, i) => i !== index)
+      education: [
+        ...(prev.education || []),
+        { institution: '', degree: '', dates: '', gpa: '' }
+      ]
     }));
+  };
+
+  const removeEducation = (index) => {
+    setProfile(prev => {
+      const edu = [...prev.education];
+      edu.splice(index, 1);
+      return { ...prev, education: edu };
+    });
+  };
+
+  const handleSkillChange = (index, value) => {
+    setProfile(prev => {
+      const skills = [...prev.skills];
+      skills[index] = value;
+      return { ...prev, skills };
+    });
+  };
+
+  const addSkill = () => {
+    setProfile(prev => ({
+      ...prev,
+      skills: [...(prev.skills || []), '']
+    }));
+  };
+
+  const removeSkill = (index) => {
+    setProfile(prev => {
+      const skills = [...prev.skills];
+      skills.splice(index, 1);
+      return { ...prev, skills };
+    });
+  };
+
+  const handleCertChange = (index, value) => {
+    setProfile(prev => {
+      const certs = [...prev.certifications];
+      certs[index] = value;
+      return { ...prev, certifications: certs };
+    });
+  };
+
+  const addCert = () => {
+    setProfile(prev => ({
+      ...prev,
+      certifications: [...(prev.certifications || []), '']
+    }));
+  };
+
+  const removeCert = (index) => {
+    setProfile(prev => {
+      const certs = [...prev.certifications];
+      certs.splice(index, 1);
+      return { ...prev, certifications: certs };
+    });
   };
 
   const handleSaveProfile = async (e) => {
@@ -95,7 +198,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <div className="w-12 h-12 rounded-full border-4 border-cyan-500/20 border-t-cyan-400 animate-spin"></div>
+        <div className="w-12 h-12 rounded-full border-4 border-purple-500/20 border-t-purple-400 animate-spin"></div>
         <p className="text-gray-400 font-medium">Loading profile...</p>
       </div>
     );
@@ -104,8 +207,8 @@ export default function ProfilePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
       <div>
-        <h1 className="text-3xl font-extrabold text-white">Master Profile</h1>
-        <p className="text-gray-400 mt-2">Upload your master resume file or manually edit details to guide the AI tailoring engine.</p>
+        <h1 className="text-3xl font-extrabold text-white">Resumes & Profile</h1>
+        <p className="text-gray-400 mt-2">Manage your master portfolio data or parse a resume file to populate AI keyword matrices.</p>
       </div>
 
       {/* Error & Success Messages */}
@@ -121,24 +224,24 @@ export default function ProfilePage() {
       )}
 
       {/* Resume File Upload Block */}
-      <div className="p-8 rounded-2xl bg-[#11131a] border border-gray-800/80 shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="p-8 rounded-2xl glass-panel shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="space-y-1">
           <h2 className="text-xl font-bold text-gray-200">Upload Master Resume</h2>
-          <p className="text-sm text-gray-500">Supports PDF, DOCX, or plain text formats.</p>
+          <p className="text-sm text-gray-500">Extracts text and parses skills using Gemini.</p>
         </div>
-        <label className={`px-6 py-3.5 rounded-xl font-bold text-sm tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all duration-300 border ${
+        <label className={`px-8 py-4 rounded-xl font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all duration-300 border ${
           uploading
-            ? 'bg-gray-800 border-gray-700 text-gray-400'
-            : 'bg-cyan-500 border-cyan-500 hover:bg-cyan-400 text-black hover:scale-105'
+            ? 'bg-purple-950/40 border-purple-500/30 text-purple-300'
+            : 'bg-purple-600 border-purple-600 hover:bg-purple-500 text-white hover:scale-105 shadow-purple-500/15'
         }`}>
           {uploading ? (
             <>
-              <div className="w-4 h-4 border-2 border-gray-600 border-t-white rounded-full animate-spin"></div>
+              <div className="w-4 h-4 border-2 border-purple-900 border-t-white rounded-full animate-spin"></div>
               Parsing Resume...
             </>
           ) : (
             <>
-              <span>📂</span> Choose File
+              <span>📂</span> Choose Resume File
             </>
           )}
           <input
@@ -155,200 +258,296 @@ export default function ProfilePage() {
         <form onSubmit={handleSaveProfile} className="space-y-8">
           
           {/* Section: Basic Info */}
-          <div className="p-6 rounded-2xl bg-[#11131a] border border-gray-800/80 shadow-md space-y-6">
-            <h3 className="text-lg font-bold text-white border-b border-gray-800 pb-2">Basic Information</h3>
+          <div className="p-6 rounded-2xl glass-panel shadow-md space-y-6">
+            <h3 className="text-lg font-bold text-white border-b border-white/5 pb-2">Basic Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 tracking-wider uppercase block">Full Name</label>
+                <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">Full Name</label>
                 <input
                   type="text"
                   value={profile.name || ''}
                   onChange={(e) => handleFormChange('name', e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
+                  className="w-full px-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 tracking-wider uppercase block">Email Address</label>
+                <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">Email Address</label>
                 <input
                   type="email"
                   value={profile.email || ''}
                   onChange={(e) => handleFormChange('email', e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
+                  className="w-full px-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 tracking-wider uppercase block">Phone Number</label>
+                <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">Phone Number</label>
                 <input
                   type="text"
                   value={profile.phone || ''}
                   onChange={(e) => handleFormChange('phone', e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
+                  className="w-full px-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 tracking-wider uppercase block">Location</label>
+                <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">Location (City, Country)</label>
                 <input
                   type="text"
                   value={profile.location || ''}
                   onChange={(e) => handleFormChange('location', e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
-                  placeholder="City, State / Remote"
+                  className="w-full px-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
                 />
               </div>
             </div>
           </div>
 
-          {/* Section: Summary */}
-          <div className="p-6 rounded-2xl bg-[#11131a] border border-gray-800/80 shadow-md space-y-4">
-            <h3 className="text-lg font-bold text-white border-b border-gray-800 pb-2">Professional Summary</h3>
-            <textarea
-              value={profile.summary || ''}
-              onChange={(e) => handleFormChange('summary', e.target.value)}
-              rows={4}
-              className="w-full px-4 py-3 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-xl text-gray-200 text-sm focus:outline-none transition resize-none"
-            />
+          {/* Section: Professional Summary */}
+          <div className="p-6 rounded-2xl glass-panel shadow-md space-y-6">
+            <h3 className="text-lg font-bold text-white border-b border-white/5 pb-2">Professional Summary</h3>
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">Summary Description</label>
+              <textarea
+                value={profile.summary || ''}
+                onChange={(e) => handleFormChange('summary', e.target.value)}
+                rows="4"
+                className="w-full px-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition font-light resize-none"
+              ></textarea>
+            </div>
           </div>
 
-          {/* Section: Skills */}
-          <div className="p-6 rounded-2xl bg-[#11131a] border border-gray-800/80 shadow-md space-y-4">
-            <h3 className="text-lg font-bold text-white border-b border-gray-800 pb-2">Skills (Comma-separated)</h3>
-            <input
-              type="text"
-              value={Array.isArray(profile.skills) ? profile.skills.join(', ') : ''}
-              onChange={(e) => handleFormChange('skills', e.target.value.split(',').map(s => s.trim()))}
-              className="w-full px-4 py-3 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
-            />
-          </div>
-
-          {/* Section: Work Experience */}
-          <div className="p-6 rounded-2xl bg-[#11131a] border border-gray-800/80 shadow-md space-y-6">
-            <div className="flex justify-between items-center border-b border-gray-800 pb-2">
-              <h3 className="text-lg font-bold text-white font-semibold">Work Experience</h3>
+          {/* Section: Work History */}
+          <div className="p-6 rounded-2xl glass-panel shadow-md space-y-6">
+            <div className="flex justify-between items-center border-b border-white/5 pb-2">
+              <h3 className="text-lg font-bold text-white">Work Experience</h3>
               <button
                 type="button"
-                onClick={() => addListItem('workHistory', { company: '', title: '', dates: '', bullets: [] })}
-                className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 cursor-pointer"
+                onClick={addWorkExperience}
+                className="px-4 py-2 rounded-xl bg-purple-600/10 border border-purple-500/20 text-purple-300 text-xs font-bold hover:bg-purple-600/20 transition cursor-pointer"
               >
-                ➕ Add Position
+                + Add Role
               </button>
             </div>
-
-            <div className="space-y-6 divide-y divide-gray-800/50">
-              {profile.workHistory?.map((job, index) => (
-                <div key={index} className="pt-6 first:pt-0 space-y-4">
-                  <div className="flex justify-between items-start gap-4">
-                    <span className="text-sm font-extrabold text-cyan-500">Position #{index + 1}</span>
+            
+            <div className="space-y-6 divide-y divide-white/5">
+              {profile.workHistory?.map((work, wIdx) => (
+                <div key={wIdx} className="pt-6 first:pt-0 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black tracking-widest text-purple-400 uppercase">Role #{wIdx + 1}</span>
                     <button
                       type="button"
-                      onClick={() => removeListItem('workHistory', index)}
-                      className="text-xs text-red-400 hover:text-red-300 font-semibold cursor-pointer"
+                      onClick={() => removeWorkExperience(wIdx)}
+                      className="text-red-400 hover:text-red-300 text-xs font-bold transition cursor-pointer"
                     >
-                      Delete
+                      Delete Role
                     </button>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-500 block">Company Name</label>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">Company Name</label>
                       <input
                         type="text"
-                        value={job.company || ''}
-                        onChange={(e) => handleListChange('workHistory', index, 'company', e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-lg text-gray-200 text-sm focus:outline-none transition"
+                        value={work.company || ''}
+                        onChange={(e) => handleWorkChange(wIdx, 'company', e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
                         required
                       />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-500 block">Job Title</label>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">Job Title</label>
                       <input
                         type="text"
-                        value={job.title || ''}
-                        onChange={(e) => handleListChange('workHistory', index, 'title', e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-lg text-gray-200 text-sm focus:outline-none transition"
+                        value={work.title || ''}
+                        onChange={(e) => handleWorkChange(wIdx, 'title', e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
                         required
                       />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-500 block">Employment Dates</label>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">Dates (e.g. 2022 - Present)</label>
                       <input
                         type="text"
-                        value={job.dates || ''}
-                        onChange={(e) => handleListChange('workHistory', index, 'dates', e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-lg text-gray-200 text-sm focus:outline-none transition"
-                        placeholder="e.g. June 2021 - Present"
+                        value={work.dates || ''}
+                        onChange={(e) => handleWorkChange(wIdx, 'dates', e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
+                        required
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-xs text-gray-500 block">Experience Bullet Points (One per line)</label>
-                    <textarea
-                      value={Array.isArray(job.bullets) ? job.bullets.join('\n') : ''}
-                      onChange={(e) => handleListChange('workHistory', index, 'bullets', e.target.value.split('\n'))}
-                      rows={4}
-                      className="w-full px-3 py-2 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-lg text-gray-200 text-sm focus:outline-none transition resize-none"
-                    />
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">Bullet Points</label>
+                      <button
+                        type="button"
+                        onClick={() => addWorkBullet(wIdx)}
+                        className="text-cyan-400 hover:text-cyan-300 text-xs font-bold transition cursor-pointer"
+                      >
+                        + Add Bullet
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {work.bullets?.map((bullet, bIdx) => (
+                        <div key={bIdx} className="flex gap-3 items-center">
+                          <input
+                            type="text"
+                            value={bullet}
+                            onChange={(e) => handleWorkBulletChange(wIdx, bIdx, e.target.value)}
+                            className="flex-1 px-4 py-2.5 bg-gray-950 border border-white/5 focus:border-purple-500 rounded-lg text-gray-300 text-xs focus:outline-none transition"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeWorkBullet(wIdx, bIdx)}
+                            className="text-gray-500 hover:text-red-400 font-bold transition text-sm cursor-pointer"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Section: Skills & Certifications */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            {/* Skills */}
+            <div className="p-6 rounded-2xl glass-panel shadow-md space-y-6">
+              <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                <h3 className="text-lg font-bold text-white">Skills Matrix</h3>
+                <button
+                  type="button"
+                  onClick={addSkill}
+                  className="px-3 py-1.5 rounded-lg bg-purple-600/10 border border-purple-500/20 text-purple-300 text-xs font-bold hover:bg-purple-600/20 transition cursor-pointer"
+                >
+                  + Add Skill
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2 max-h-[40vh] overflow-y-auto pr-1">
+                {profile.skills?.map((skill, index) => (
+                  <div key={index} className="flex items-center gap-1.5 bg-gray-950 border border-white/5 rounded-lg px-3 py-1">
+                    <input
+                      type="text"
+                      value={skill}
+                      onChange={(e) => handleSkillChange(index, e.target.value)}
+                      className="bg-transparent border-none outline-none text-gray-200 text-xs w-24 focus:text-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeSkill(index)}
+                      className="text-gray-500 hover:text-red-400 font-bold text-[10px] cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Certifications */}
+            <div className="p-6 rounded-2xl glass-panel shadow-md space-y-6">
+              <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                <h3 className="text-lg font-bold text-white">Certifications</h3>
+                <button
+                  type="button"
+                  onClick={addCert}
+                  className="px-3 py-1.5 rounded-lg bg-purple-600/10 border border-purple-500/20 text-purple-300 text-xs font-bold hover:bg-purple-600/20 transition cursor-pointer"
+                >
+                  + Add Cert
+                </button>
+              </div>
+              <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-1">
+                {profile.certifications?.map((cert, index) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <input
+                      type="text"
+                      value={cert}
+                      onChange={(e) => handleCertChange(index, e.target.value)}
+                      className="flex-1 px-3 py-2 bg-gray-950 border border-white/5 focus:border-purple-500 rounded-lg text-gray-300 text-xs focus:outline-none transition"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeCert(index)}
+                      className="text-gray-500 hover:text-red-400 font-bold transition text-xs cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
 
           {/* Section: Education */}
-          <div className="p-6 rounded-2xl bg-[#11131a] border border-gray-800/80 shadow-md space-y-6">
-            <div className="flex justify-between items-center border-b border-gray-800 pb-2">
-              <h3 className="text-lg font-bold text-white font-semibold">Education</h3>
+          <div className="p-6 rounded-2xl glass-panel shadow-md space-y-6">
+            <div className="flex justify-between items-center border-b border-white/5 pb-2">
+              <h3 className="text-lg font-bold text-white">Education History</h3>
               <button
                 type="button"
-                onClick={() => addListItem('education', { school: '', degree: '', year: '' })}
-                className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 cursor-pointer"
+                onClick={addEducation}
+                className="px-4 py-2 rounded-xl bg-purple-600/10 border border-purple-500/20 text-purple-300 text-xs font-bold hover:bg-purple-600/20 transition cursor-pointer"
               >
-                ➕ Add School
+                + Add Degree
               </button>
             </div>
-
-            <div className="space-y-6 divide-y divide-gray-800/50">
-              {profile.education?.map((edu, index) => (
-                <div key={index} className="pt-6 first:pt-0 space-y-4">
-                  <div className="flex justify-between items-start gap-4">
-                    <span className="text-sm font-extrabold text-cyan-500">School #{index + 1}</span>
+            
+            <div className="space-y-6">
+              {profile.education?.map((edu, eIdx) => (
+                <div key={eIdx} className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold tracking-widest text-purple-400 uppercase">Degree #{eIdx + 1}</span>
                     <button
                       type="button"
-                      onClick={() => removeListItem('education', index)}
-                      className="text-xs text-red-400 hover:text-red-300 font-semibold cursor-pointer"
+                      onClick={() => removeEducation(eIdx)}
+                      className="text-red-400 hover:text-red-300 text-xs font-bold transition cursor-pointer"
                     >
-                      Delete
+                      Delete Degree
                     </button>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-500 block">School/University</label>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">Institution Name</label>
                       <input
                         type="text"
-                        value={edu.school || ''}
-                        onChange={(e) => handleListChange('education', index, 'school', e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-lg text-gray-200 text-sm focus:outline-none transition"
+                        value={edu.institution || ''}
+                        onChange={(e) => handleEducationChange(eIdx, 'institution', e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
                         required
                       />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-500 block">Degree / Major</label>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">Degree / Major</label>
                       <input
                         type="text"
                         value={edu.degree || ''}
-                        onChange={(e) => handleListChange('education', index, 'degree', e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-lg text-gray-200 text-sm focus:outline-none transition"
+                        onChange={(e) => handleEducationChange(eIdx, 'degree', e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
+                        required
                       />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-500 block">Graduation Year</label>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">Dates of Study</label>
                       <input
                         type="text"
-                        value={edu.year || ''}
-                        onChange={(e) => handleListChange('education', index, 'year', e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-900 border border-gray-800 focus:border-cyan-500 rounded-lg text-gray-200 text-sm focus:outline-none transition"
-                        placeholder="e.g. 2022"
+                        value={edu.dates || ''}
+                        onChange={(e) => handleEducationChange(eIdx, 'dates', e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-400 tracking-wider uppercase block">GPA (Optional)</label>
+                      <input
+                        type="text"
+                        value={edu.gpa || ''}
+                        onChange={(e) => handleEducationChange(eIdx, 'gpa', e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-900 border border-white/5 focus:border-purple-500 rounded-xl text-gray-200 text-sm focus:outline-none transition"
                       />
                     </div>
                   </div>
@@ -357,25 +556,18 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Form Actions */}
-          <div className="flex justify-end gap-4">
+          {/* Form Submit Button */}
+          <div className="flex justify-end pt-4">
             <button
               type="submit"
               disabled={saving}
-              className={`px-8 py-4 rounded-xl font-bold text-sm tracking-wider shadow-lg transition-all duration-300 border cursor-pointer ${
+              className={`px-8 py-4 rounded-xl font-bold text-xs tracking-wider uppercase shadow-lg transition-all duration-300 border cursor-pointer ${
                 saving
-                  ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30'
-                  : 'bg-cyan-500 border-cyan-500 hover:bg-cyan-400 text-black hover:scale-105 shadow-cyan-500/10 hover:shadow-cyan-500/20'
+                  ? 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+                  : 'bg-purple-600 border-purple-600 hover:bg-purple-500 text-white hover:scale-105 shadow-purple-500/20'
               }`}
             >
-              {saving ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-cyan-900 border-t-white rounded-full animate-spin inline-block mr-2 align-middle"></div>
-                  Saving Changes...
-                </>
-              ) : (
-                'Save Profile Configuration'
-              )}
+              {saving ? 'Saving changes...' : 'Save Profile Changes'}
             </button>
           </div>
 

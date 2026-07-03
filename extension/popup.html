@@ -8,8 +8,8 @@
       margin: 0;
       padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #0b0f19;
-      color: #f1f5f9;
+      background-color: #0a0a0f;
+      color: #f8fafc;
       font-size: 13px;
     }
     .container {
@@ -22,7 +22,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid #1e293b;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       padding-bottom: 12px;
     }
     .logo-container {
@@ -30,42 +30,39 @@
       align-items: center;
       gap: 8px;
     }
-    .logo {
-      width: 24px;
-      height: 24px;
-      border-radius: 6px;
-    }
     .logo-text {
       font-size: 15px;
       font-weight: 800;
-      background: linear-gradient(to right, #00b894, #00aec8);
+      background: linear-gradient(to right, #8b5cf6, #06b6d4);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
     .btn-edit-profile {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
       color: #94a3b8;
       text-decoration: none;
-      padding: 4px 8px;
-      border-radius: 6px;
-      background-color: #1e293b;
-      border: 1px solid #334155;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
     .btn-edit-profile:hover {
       color: #fff;
-      background-color: #334155;
+      background-color: rgba(255, 255, 255, 0.1);
     }
     .job-card {
-      background-color: #111827;
-      border: 1px solid #1e293b;
+      background-color: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 12px;
       padding: 14px;
       position: relative;
     }
     .job-title {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 800;
       color: #ffffff;
       margin: 0 0 6px 0;
@@ -73,7 +70,7 @@
     }
     .job-company {
       font-size: 12px;
-      color: #00b894;
+      color: #8b5cf6;
       font-weight: 700;
       margin: 0 0 4px 0;
     }
@@ -93,8 +90,8 @@
     .spinner {
       width: 28px;
       height: 28px;
-      border: 3px solid rgba(0, 184, 148, 0.1);
-      border-top-color: #00b894;
+      border: 3px solid rgba(139, 92, 246, 0.1);
+      border-top-color: #8b5cf6;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
@@ -136,9 +133,9 @@
       font-weight: 600;
     }
     .tag-match {
-      background-color: rgba(16, 185, 129, 0.08);
-      color: #10b981;
-      border: 1px solid rgba(16, 185, 129, 0.15);
+      background-color: rgba(139, 92, 246, 0.08);
+      color: #a78bfa;
+      border: 1px solid rgba(139, 92, 246, 0.15);
     }
     .tag-missing {
       background-color: rgba(249, 115, 22, 0.08);
@@ -152,17 +149,17 @@
       width: 42px;
       height: 42px;
       border-radius: 50%;
-      background-color: #1e293b;
-      border: 2px solid #00b894;
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 2px solid #8b5cf6;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
     }
     .score-val {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 900;
-      color: #00b894;
+      color: #8b5cf6;
     }
     .score-pct {
       font-size: 7px;
@@ -191,26 +188,26 @@
       transform: translateY(-1px);
     }
     .btn-primary {
-      background-color: #00b894;
+      background-color: #8b5cf6;
       color: #ffffff;
     }
     .btn-primary:hover {
-      background-color: #00d2aa;
+      background-color: #7c3aed;
     }
     .btn-autofill {
-      background-color: #00aec8;
+      background-color: #06b6d4;
       color: #ffffff;
     }
     .btn-autofill:hover {
-      background-color: #00c7e4;
+      background-color: #0891b2;
     }
     .btn-secondary {
-      background-color: #1e293b;
+      background-color: rgba(255, 255, 255, 0.05);
       color: #cbd5e1;
-      border: 1px solid #334155;
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
     .btn-secondary:hover {
-      background-color: #334155;
+      background-color: rgba(255, 255, 255, 0.1);
       color: #fff;
     }
     .status-alert {
@@ -234,7 +231,7 @@
       font-size: 9px;
       color: #475569;
       text-align: center;
-      border-top: 1px solid #1e293b;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
       padding-top: 10px;
     }
   </style>
@@ -245,8 +242,8 @@
     <!-- Top Header -->
     <div class="header">
       <div class="logo-container">
-        <div style="width:10px; height:10px; border-radius:50%; background-color:#00b894;"></div>
-        <span class="logo-text">ApplyAI</span>
+        <div style="width:10px; height:10px; border-radius:50%; background-color:#8b5cf6;"></div>
+        <span class="logo-text">JobForge AI</span>
       </div>
       <a href="http://localhost:3000/profile" target="_blank" class="btn-edit-profile">Edit Resume</a>
     </div>
@@ -300,7 +297,7 @@
 
       <!-- Main Autofill Button -->
       <button id="btn-autofill" class="btn btn-autofill">
-        ✨ Autofill Application Form
+        ⚡ Autofill Application Form
       </button>
 
       <!-- Re-Scout Button -->
@@ -317,13 +314,13 @@
   </div>
 
   <!-- Cover Letter Preview Overlay -->
-  <div id="cl-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #0b0f19; z-index: 100; flex-direction: column; box-sizing: border-box; padding: 16px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 10px; margin-bottom: 12px;">
+  <div id="cl-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #0a0a0f; z-index: 100; flex-direction: column; box-sizing: border-box; padding: 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 10px; margin-bottom: 12px;">
       <span style="font-size: 14px; font-weight: 800; color: #fff;">Tailored Cover Letter</span>
       <button id="btn-close-cl" style="background: none; border: none; color: #94a3b8; font-size: 16px; font-weight: bold; cursor: pointer;">✕</button>
     </div>
     
-    <div id="cl-text-container" style="flex: 1; overflow-y: auto; background-color: #111827; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 11px; white-space: pre-wrap; line-height: 1.4; color: #cbd5e1; margin-bottom: 14px;">
+    <div id="cl-text-container" style="flex: 1; overflow-y: auto; background-color: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 11px; white-space: pre-wrap; line-height: 1.4; color: #cbd5e1; margin-bottom: 14px;">
     </div>
     
     <div style="display: flex; gap: 8px;">

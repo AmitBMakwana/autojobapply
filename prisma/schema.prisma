@@ -1,0 +1,54 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Profile {
+  id             Int      @id @default(1)
+  name           String?
+  email          String?
+  phone          String?
+  location       String?
+  summary        String?
+  skills         String?  // JSON stringified array
+  workHistory    String?  // JSON stringified array of objects
+  education      String?  // JSON stringified array of objects
+  certifications String?  // JSON stringified array
+  rawResumeText  String?
+  updatedAt      DateTime @updatedAt
+}
+
+model Job {
+  id             String        @id
+  title          String
+  company        String
+  location       String?
+  url            String?
+  description    String?
+  source         String        // 'Greenhouse', 'Lever', 'Adzuna', 'JSearch', 'LinkedIn', 'Indeed', 'Naukri', 'Manual'
+  fitScore       Int?
+  matchedSkills  String?       // JSON stringified array
+  missingSkills  String?       // JSON stringified array
+  rationale      String?
+  status         String        @default("Saved") // 'Saved', 'Tailored', 'Applied', 'Interview', 'Offer', 'Rejected'
+  appliedDate    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  tailoredDoc    TailoredDoc?
+}
+
+model TailoredDoc {
+  id                String   @id @default(uuid())
+  jobId             String   @unique
+  job               Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  tailoredResume    String
+  tailoredCoverLetter String
+  resumePdfPath     String?
+  resumeDocxPath    String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}

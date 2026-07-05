@@ -59,6 +59,8 @@ export default function ResumesPage() {
   const [menuId, setMenuId]     = useState(null);
   const [renaming, setRenaming] = useState(null);
   const [showPrint, setShowPrint] = useState(false);
+  const [popup, setPopup] = useState(null); // { type: string, data: object }
+  const [modalData, setModalData] = useState({});
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -196,39 +198,71 @@ export default function ResumesPage() {
   const addCert = () => setSelected(p => ({...p,certifications:[...(p.certifications||[]),'']}));
   const delCert = (i) => setSelected(p => { const c=[...p.certifications]; c.splice(i,1); return {...p,certifications:c}; });
 
+  const handleSubmitPopup = (e) => {
+    e.preventDefault();
+    if (!popup) return;
+    const { type, data } = popup;
+    if (type === 'work') {
+      const bullets = data.bulletsText ? data.bulletsText.split('\n').map(s => s.trim()).filter(Boolean) : [''];
+      setSelected(p => ({ ...p, workHistory: [...(p.workHistory || []), { company: data.company || '', title: data.title || '', location: data.location || '', dates: data.dates || '', bullets }] }));
+    } else if (type === 'edu') {
+      setSelected(p => ({ ...p, education: [...(p.education || []), { institution: data.institution || '', degree: data.degree || '', field: data.field || '', dates: data.dates || '', gpa: data.gpa || '', achievements: data.achievements || '' }] }));
+    } else if (type === 'skill') {
+      const items = data.skills ? data.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
+      setSelected(p => ({ ...p, skills: [...(p.skills || []), { category: data.category || '', items }] }));
+    } else if (type === 'proj') {
+      const highlights = data.highlightsText ? data.highlightsText.split('\n').map(s => s.trim()).filter(Boolean) : [''];
+      setSelected(p => ({ ...p, projects: [...(p.projects || []), { name: data.name || '', role: data.role || '', tech: data.tech || '', link: data.link || '', github: data.github || '', dates: data.dates || '', status: data.status || '', description: data.description || '', highlights }] }));
+    } else if (type === 'cert' && data.name) {
+      setSelected(p => ({ ...p, certifications: [...(p.certifications || []), data.name] }));
+    } else if (type === 'lang' && data.name) {
+      setSelected(p => ({ ...p, additionalInfo: { ...p.additionalInfo, languages: [...(p.additionalInfo.languages || []), data.name] } }));
+    } else if (type === 'hobby' && data.name) {
+      setSelected(p => ({ ...p, additionalInfo: { ...p.additionalInfo, hobbies: [...(p.additionalInfo.hobbies || []), data.name] } }));
+    }
+    setPopup(null);
+  };
+
   /* ─── render ─── */
   return (
-    <div className="w-full h-[calc(100vh-56px)] flex flex-col">
+    <div className="w-full h-[calc(100vh-56px)] flex flex-col relative overflow-hidden bg-[#07070a]">
+      {/* Ambient background glowing orbs */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blob-purple opacity-40 pointer-events-none z-0" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blob-cyan opacity-35 pointer-events-none z-0" />
 
       {/* toast */}
       {msg.text && (
-        <div className={`fixed top-4 right-4 z-[100] px-5 py-3 rounded-xl text-sm font-semibold shadow-xl border animate-fade-in ${
-          msg.type === 'error' ? 'bg-red-500/15 border-red-500/30 text-red-300' : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+        <div className={`fixed top-6 right-6 z-[100] px-5 py-3 rounded-2xl text-sm font-semibold shadow-2xl border backdrop-blur-xl animate-fade-in ${
+          msg.type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-300 shadow-red-500/5' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300 shadow-emerald-500/5'
         }`}>
           {msg.type === 'error' ? '⚠️' : '✅'} {msg.text}
         </div>
       )}
 
-      <div className="flex flex-1 min-h-0">
+      {popup && <AddItemPopup type={popup.type} data={popup.data} onChange={setPopup} onSubmit={handleSubmitPopup} onClose={() => setPopup(null)} />}
+
+      <div className="flex flex-1 min-h-0 z-10">
 
         {/* ══════ LEFT SIDEBAR ══════ */}
-        <aside className="w-[220px] shrink-0 border-r border-white/6 flex flex-col bg-[#0a0b14]">
-          <div className="px-4 py-4 border-b border-white/6">
-            <h2 className="text-[11px] font-black text-gray-300 uppercase tracking-widest">My Resumes</h2>
-            <p className="text-[10px] text-gray-600 mt-0.5">{resumes.length} version{resumes.length !== 1 ? 's' : ''}</p>
+        <aside className="w-[240px] shrink-0 border-r border-white/5 flex flex-col bg-[#0c0d19]/60 backdrop-blur-xl">
+          <div className="px-5 py-5 border-b border-white/5">
+            <h2 className="text-xs font-black text-white/90 uppercase tracking-widest bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">My Resumes</h2>
+            <p className="text-[10px] text-gray-500 mt-1">{resumes.length} version{resumes.length !== 1 ? 's' : ''}</p>
           </div>
 
-          <div className="flex-1 overflow-y-auto py-2" style={{ scrollbarWidth: 'thin' }}>
+          <div className="flex-1 overflow-y-auto py-3 px-2 space-y-1" style={{ scrollbarWidth: 'thin' }}>
             {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="w-5 h-5 border-2 border-purple-500/30 border-t-purple-400 rounded-full animate-spin" />
+              <div className="flex justify-center py-12">
+                <div className="w-6 h-6 border-2 border-purple-500/20 border-t-purple-500 rounded-full animate-spin" />
               </div>
             ) : resumes.map(r => (
               <div
                 key={r.id}
                 onClick={() => selectResume(r)}
-                className={`relative mx-2 mb-1 px-3 py-3 rounded-xl cursor-pointer transition-all group border ${
-                  selected?.id === r.id ? 'bg-purple-900/25 border-purple-500/40' : 'border-transparent hover:bg-white/4 hover:border-white/8'
+                className={`relative px-3.5 py-3 rounded-xl cursor-pointer transition-all duration-300 group border ${
+                  selected?.id === r.id 
+                    ? 'bg-purple-500/10 border-purple-500/30 shadow-[0_0_15px_rgba(139,92,246,0.08)]' 
+                    : 'border-transparent hover:bg-white/3 hover:border-white/5'
                 }`}
               >
                 {renaming?.id === r.id ? (
@@ -237,27 +271,27 @@ export default function ResumesPage() {
                     onChange={e => setRenaming(p => ({ ...p, value: e.target.value }))}
                     onBlur={commitRename}
                     onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenaming(null); }}
-                    className="w-full bg-[#0a0a0f] border border-purple-500/50 rounded-lg px-2 py-1 text-xs text-white outline-none"
+                    className="w-full bg-[#0a0b14] border border-purple-500/50 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:ring-1 focus:ring-purple-500"
                     onClick={e => e.stopPropagation()}
                   />
                 ) : (
                   <>
                     <div className="flex items-start justify-between gap-1">
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold text-gray-200 truncate leading-tight">{r.name}</p>
+                        <p className={`text-xs font-semibold truncate leading-snug transition-colors ${selected?.id === r.id ? 'text-purple-200' : 'text-gray-300 group-hover:text-white'}`}>{r.name}</p>
                         {r.isDefault && (
-                          <span className="inline-block mt-1 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-green-500/15 text-green-400 border border-green-500/25 rounded">Default</span>
+                          <span className="inline-block mt-1.5 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md">Default</span>
                         )}
-                        <p className="text-[10px] text-gray-600 mt-1">{formatDate(r.updatedAt)}</p>
+                        <p className="text-[9px] text-gray-500 mt-1">{formatDate(r.updatedAt)}</p>
                       </div>
                       <button
                         onClick={e => { e.stopPropagation(); setMenuId(menuId === r.id ? null : r.id); }}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded-md hover:bg-white/10 text-gray-400 hover:text-white transition-all text-xs cursor-pointer shrink-0"
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-all text-xs cursor-pointer shrink-0"
                       >⋯</button>
                     </div>
 
                     {menuId === r.id && (
-                      <div ref={menuRef} className="absolute right-2 top-10 z-50 w-44 bg-[#1a1b2e] border border-white/10 rounded-xl shadow-2xl overflow-hidden py-1" onClick={e => e.stopPropagation()}>
+                      <div ref={menuRef} className="absolute right-2 top-10 z-50 w-44 bg-[#111224] border border-white/5 rounded-xl shadow-2xl overflow-hidden py-1" onClick={e => e.stopPropagation()}>
                         {[
                           { icon: '✏️', label: 'Rename',         action: () => { setRenaming({ id: r.id, value: r.name }); setMenuId(null); } },
                           { icon: '📋', label: 'Duplicate',      action: () => handleDuplicate(r.id) },
@@ -265,7 +299,7 @@ export default function ResumesPage() {
                           { icon: '🗑', label: 'Delete',         action: () => handleDelete(r.id), danger: true },
                         ].filter(x => !x.hide).map(item => (
                           <button key={item.label} onClick={item.action}
-                            className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium transition cursor-pointer ${item.danger ? 'text-red-400 hover:bg-red-500/10' : 'text-gray-300 hover:bg-white/8'}`}
+                            className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium transition cursor-pointer ${item.danger ? 'text-red-400 hover:bg-red-500/10' : 'text-gray-300 hover:bg-white/5'}`}
                           >
                             <span>{item.icon}</span>{item.label}
                           </button>
@@ -277,12 +311,12 @@ export default function ResumesPage() {
               </div>
             ))}
             {resumes.length === 0 && !loading && (
-              <div className="px-4 py-8 text-center text-xs text-gray-600">No resumes yet.<br />Click below to create one.</div>
+              <div className="px-4 py-8 text-center text-xs text-gray-500">No resumes yet.<br />Click below to create one.</div>
             )}
           </div>
 
-          <div className="p-3 border-t border-white/6">
-            <button onClick={handleCreate} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-lg shadow-purple-500/20">
+          <div className="p-4 border-t border-white/5">
+            <button onClick={handleCreate} className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-extrabold flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer shadow-lg shadow-purple-500/10 hover:shadow-purple-500/20 active:scale-98">
               + New Resume
             </button>
           </div>
@@ -290,22 +324,24 @@ export default function ResumesPage() {
 
         {/* ══════ MAIN EDITOR ══════ */}
         {selected ? (
-          <form onSubmit={handleSave} className="flex-1 min-w-0 flex flex-col bg-[#0d0e1a]">
+          <form onSubmit={handleSave} className="flex-1 min-w-0 flex flex-col bg-[#090a14]/40 backdrop-blur-xl">
 
             {/* top bar: name + tabs */}
-            <div className="border-b border-white/6 bg-[#0a0b14] px-6 py-3 flex items-center gap-6 shrink-0">
+            <div className="border-b border-white/5 bg-[#0a0b18]/40 px-6 py-4 flex items-center justify-between gap-6 shrink-0">
               <div className="min-w-0">
                 <p className="text-sm font-extrabold text-white truncate">{selected.name}</p>
-                <p className="text-[10px] text-gray-600">Updated {formatDate(selected.updatedAt)}</p>
+                <p className="text-[9px] text-gray-500">Updated {formatDate(selected.updatedAt)}</p>
               </div>
-              <div className="flex gap-0.5 flex-wrap flex-1">
+              <div className="flex gap-1.5 flex-wrap">
                 {TABS.map(t => (
                   <button key={t.id} type="button" onClick={() => setTab(t.id)}
-                    className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition cursor-pointer flex items-center gap-1.5 ${
-                      tab === t.id ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
+                    className={`relative px-3.5 py-2 rounded-xl text-[11px] font-bold transition-all duration-300 cursor-pointer flex items-center gap-2 border ${
+                      tab === t.id 
+                        ? 'bg-purple-500/10 text-purple-300 border-purple-500/20 shadow-[0_0_12px_rgba(139,92,246,0.1)] tab-active-glow' 
+                        : 'text-gray-400 hover:text-gray-200 hover:bg-white/3 border-transparent'
                     }`}
                   >
-                    <span>{t.icon}</span>{t.label}
+                    <span className="text-xs">{t.icon}</span>{t.label}
                   </button>
                 ))}
               </div>
@@ -316,18 +352,18 @@ export default function ResumesPage() {
 
               {/* ── PERSONAL INFO ── */}
               {tab === 'info' && (
-                <div className="max-w-2xl space-y-6">
-                  <div>
-                    <div className="flex items-center gap-3 mb-5">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center text-lg font-black text-white">
+                <div className="max-w-2xl space-y-6 animate-fade-in">
+                  <div className="glass-panel rounded-2xl p-6 shadow-xl">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 via-indigo-500 to-cyan-500 flex items-center justify-center text-xl font-black text-white shadow-lg shadow-purple-500/20">
                         {(selected.personName || '?')[0].toUpperCase()}
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-white">Personal Details</h3>
-                        <p className="text-[10px] text-gray-500">Your contact information</p>
+                        <h3 className="text-sm font-extrabold text-white tracking-wide">Personal Details</h3>
+                        <p className="text-[10px] text-gray-400">Your profile contact information</p>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       {[
                         { label: 'Full Name',    field: 'personName', type: 'text',  ph: 'John Smith' },
                         { label: 'Email',        field: 'email',      type: 'email', ph: 'john@example.com' },
@@ -336,9 +372,9 @@ export default function ResumesPage() {
                         { label: 'LinkedIn URL', field: 'linkedin',   type: 'text',  ph: 'linkedin.com/in/john' },
                         { label: 'GitHub / Portfolio', field: 'portfolio', type: 'text', ph: 'github.com/john' },
                       ].map(({ label, field, type, ph }) => (
-                        <div key={field}>
+                        <div key={field} className="space-y-1.5">
                           <label className={lbl}>{label}</label>
-                          <input type={type} value={selected[field] || ''} onChange={e => set(field, e.target.value)} className={inp} placeholder={ph} />
+                          <input type={type} value={selected[field] || ''} onChange={e => set(field, e.target.value)} className={`${inp} bg-[#070811]/60 focus:bg-[#070811]/90`} placeholder={ph} />
                         </div>
                       ))}
                     </div>
@@ -348,304 +384,330 @@ export default function ResumesPage() {
 
               {/* ── SUMMARY ── */}
               {tab === 'summary' && (
-                <div className="max-w-2xl space-y-4">
-                  <div className="flex items-center gap-3 p-4 bg-purple-500/8 border border-purple-500/15 rounded-2xl">
-                    <span className="text-2xl">💡</span>
-                    <p className="text-xs text-gray-400 leading-relaxed">A strong summary grabs recruiter attention in the first 6 seconds. Keep it 3–4 sentences, highlight your years of experience, top skills, and what you uniquely bring.</p>
+                <div className="max-w-2xl space-y-6 animate-fade-in">
+                  <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-purple-500/10 to-indigo-500/5 border border-purple-500/20 rounded-2xl shadow-[0_0_20px_rgba(139,92,246,0.05)]">
+                    <span className="text-2xl shrink-0 mt-0.5">💡</span>
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-extrabold text-purple-300">Writing a Killer Summary</h4>
+                      <p className="text-[11px] text-gray-400 leading-relaxed">A strong summary grabs recruiter attention in 6 seconds. Keep it to 3–4 sentences. Highlight years of experience, core technical skills, and unique strengths.</p>
+                    </div>
                   </div>
-                  <div>
+                  <div className="glass-panel rounded-2xl p-6 shadow-xl space-y-2">
                     <label className={lbl}>Professional Summary</label>
-                    <textarea value={selected.summary || ''} onChange={e => set('summary', e.target.value)} rows={10} className={ta} placeholder="Experienced software engineer with 5+ years building scalable web applications…" />
-                    <p className="text-[10px] text-gray-600 mt-2 text-right">{(selected.summary || '').length} chars</p>
+                    <textarea value={selected.summary || ''} onChange={e => set('summary', e.target.value)} rows={10} className={`${ta} bg-[#070811]/60 focus:bg-[#070811]/90`} placeholder="Experienced software engineer with 5+ years building scalable web applications…" />
+                    <div className="flex justify-between items-center text-[10px] text-gray-500 pt-1">
+                      <span>Make it concise and impactful</span>
+                      <span className="font-mono">{(selected.summary || '').length} characters</span>
+                    </div>
                   </div>
                 </div>
               )}
 
               {/* ── EXPERIENCE ── */}
               {tab === 'experience' && (
-                <div className="space-y-5">
+                <div className="space-y-6 animate-fade-in">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs text-gray-500">{selected.workHistory?.length || 0} roles</p>
-                    <button type="button" onClick={addWork} className="px-4 py-2 rounded-xl bg-purple-600/15 border border-purple-500/30 text-purple-300 text-xs font-bold hover:bg-purple-600/25 transition cursor-pointer">+ Add Role</button>
+                    <p className="text-xs text-gray-400 font-medium">{selected.workHistory?.length || 0} professional roles</p>
+                    <button type="button" onClick={() => setPopup({ type: 'work', data: {} })} className="px-4 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-bold hover:bg-purple-500/20 transition-all duration-200 cursor-pointer shadow-sm shadow-purple-500/5 flex items-center gap-1.5 active:scale-98">
+                      <span>💼</span> + Add Role
+                    </button>
                   </div>
-                  {selected.workHistory?.map((work, wi) => (
-                    <div key={wi} className="bg-[#12131f] border border-white/6 rounded-2xl overflow-hidden">
-                      {/* role header */}
-                      <div className="px-5 py-3 bg-white/3 border-b border-white/6 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-xs">💼</div>
-                          <span className="text-xs font-bold text-gray-300">{work.title || 'New Role'} {work.company ? `@ ${work.company}` : ''}</span>
-                        </div>
-                        <button type="button" onClick={() => delWork(wi)} className="text-gray-600 hover:text-red-400 text-xs cursor-pointer px-2 py-1 hover:bg-red-500/10 rounded transition">Remove</button>
-                      </div>
-                      <div className="p-5 space-y-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                          {[
-                            { lbl: 'Job Title',  f: 'title',    ph: 'Software Engineer' },
-                            { lbl: 'Company',    f: 'company',  ph: 'Acme Corp' },
-                            { lbl: 'Location',   f: 'location', ph: 'Remote / New York' },
-                            { lbl: 'Date Range', f: 'dates',    ph: 'Jan 2021 – Present' },
-                          ].map(({ lbl: l, f, ph }) => (
-                            <div key={f}>
-                              <label className={lbl}>{l}</label>
-                              <input type="text" value={work[f] || ''} onChange={e => setWork(wi, f, e.target.value)} className={inp} placeholder={ph} />
-                            </div>
-                          ))}
-                        </div>
-                        <div className="space-y-2 pt-3 border-t border-white/5">
-                          <div className="flex justify-between items-center">
-                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Bullet Points</label>
-                            <button type="button" onClick={() => addBullet(wi)} className={addB}>+ Add Bullet</button>
+                  <div className="space-y-5">
+                    {selected.workHistory?.map((work, wi) => (
+                      <div key={wi} className="glass-panel glass-panel-hover rounded-2xl overflow-hidden shadow-lg border border-white/5">
+                        {/* role header */}
+                        <div className="px-6 py-4 bg-white/2 border-b border-white/5 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-sm shadow-inner">💼</div>
+                            <span className="text-xs font-extrabold text-gray-200 tracking-wide">{work.title || 'New Position'} {work.company ? `@ ${work.company}` : ''}</span>
                           </div>
-                          {work.bullets?.map((b, bi) => (
-                            <div key={bi} className="flex gap-2 items-start">
-                              <span className="text-purple-500 mt-3.5 text-xs shrink-0">▸</span>
-                              <textarea value={b} onChange={e => setBullet(wi, bi, e.target.value)} rows={2} className={`${ta} flex-1`} placeholder="Achieved X by doing Y, resulting in Z% improvement…" />
-                              <button type="button" onClick={() => delBullet(wi, bi)} className={`${delB} mt-2`}>✕</button>
+                          <button type="button" onClick={() => delWork(wi)} className="text-gray-400 hover:text-red-400 hover:bg-red-500/10 text-xs cursor-pointer px-3 py-1.5 rounded-xl transition duration-200 font-semibold border border-transparent hover:border-red-500/10">
+                            Remove
+                          </button>
+                        </div>
+                        <div className="p-6 space-y-5">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {[
+                              { lbl: 'Job Title',  f: 'title',    ph: 'Software Engineer' },
+                              { lbl: 'Company',    f: 'company',  ph: 'Acme Corp' },
+                              { lbl: 'Location',   f: 'location', ph: 'Remote / New York' },
+                              { lbl: 'Date Range', f: 'dates',    ph: 'Jan 2021 – Present' },
+                            ].map(({ lbl: l, f, ph }) => (
+                              <div key={f} className="space-y-1">
+                                <label className={lbl}>{l}</label>
+                                <input type="text" value={work[f] || ''} onChange={e => setWork(wi, f, e.target.value)} className={`${inp} bg-[#070811]/60`} placeholder={ph} />
+                              </div>
+                            ))}
+                          </div>
+                          <div className="space-y-3.5 pt-4 border-t border-white/5">
+                            <div className="flex justify-between items-center">
+                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Key Accomplishments</label>
+                              <button type="button" onClick={() => addBullet(wi)} className={`${addB} hover:scale-102`}>+ Add Bullet Point</button>
                             </div>
-                          ))}
+                            <div className="space-y-3">
+                              {work.bullets?.map((b, bi) => (
+                                <div key={bi} className="flex gap-3 items-start group/bullet">
+                                  <span className="text-purple-400/70 mt-3 text-xs shrink-0 select-none">▸</span>
+                                  <textarea value={b} onChange={e => setBullet(wi, bi, e.target.value)} rows={2} className={`${ta} flex-1 bg-[#070811]/60 focus:bg-[#070811]/90 py-2.5`} placeholder="Achieved X by doing Y, resulting in Z% improvement…" />
+                                  <button type="button" onClick={() => delBullet(wi, bi)} className={`${delB} mt-2.5 opacity-0 group-hover/bullet:opacity-100 p-1.5 hover:bg-white/5 rounded-lg`}>✕</button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                   {(!selected.workHistory || selected.workHistory.length === 0) && (
-                    <div className="py-16 text-center border border-dashed border-white/8 rounded-2xl text-gray-600 text-sm">No roles yet. Click <strong className="text-gray-400">+ Add Role</strong>.</div>
+                    <div className="py-20 text-center border border-dashed border-white/5 rounded-2xl text-gray-500 text-sm glass-panel">No roles yet. Click <strong className="text-purple-400">+ Add Role</strong> to begin mapping history.</div>
                   )}
                 </div>
               )}
 
               {/* ── EDUCATION ── */}
               {tab === 'education' && (
-                <div className="space-y-4">
+                <div className="space-y-6 animate-fade-in">
                   <div className="flex justify-end">
-                    <button type="button" onClick={addEdu} className="px-4 py-2 rounded-xl bg-purple-600/15 border border-purple-500/30 text-purple-300 text-xs font-bold hover:bg-purple-600/25 transition cursor-pointer">+ Add Education</button>
+                    <button type="button" onClick={() => setPopup({ type: 'edu', data: {} })} className="px-4 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-bold hover:bg-purple-500/20 transition-all duration-200 cursor-pointer shadow-sm shadow-purple-500/5 flex items-center gap-1.5 active:scale-98">
+                      <span>🎓</span> + Add Education
+                    </button>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {selected.education?.map((edu, i) => (
-                      <div key={i} className="bg-[#12131f] border border-white/6 rounded-2xl overflow-hidden">
-                        <div className="px-5 py-2.5 bg-white/3 border-b border-white/6 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm">🎓</span>
-                            <span className="text-xs font-bold text-gray-300 truncate">{edu.institution || 'New Degree'}</span>
+                      <div key={i} className="glass-panel glass-panel-hover rounded-2xl overflow-hidden shadow-lg border border-white/5 flex flex-col justify-between">
+                        <div>
+                          <div className="px-5 py-3.5 bg-white/2 border-b border-white/5 flex items-center justify-between">
+                            <div className="flex items-center gap-2.5">
+                              <span className="text-base">🎓</span>
+                              <span className="text-xs font-extrabold text-gray-200 tracking-wide truncate max-w-[180px]">{edu.institution || 'New Education'}</span>
+                            </div>
+                            <button type="button" onClick={() => delEdu(i)} className="text-gray-400 hover:text-red-400 hover:bg-red-500/10 text-[11px] cursor-pointer px-2.5 py-1.5 rounded-lg transition font-semibold">Remove</button>
                           </div>
-                          <button type="button" onClick={() => delEdu(i)} className="text-gray-600 hover:text-red-400 text-[10px] cursor-pointer">Remove</button>
-                        </div>
-                        <div className="p-4 space-y-3">
-                          <div><label className={lbl}>Degree / Qualification</label><input type="text" value={edu.degree || ''} onChange={e => setEdu(i, 'degree', e.target.value)} className={inp} placeholder="B.Sc. Computer Science" /></div>
-                          <div><label className={lbl}>Field of Study</label><input type="text" value={edu.field || ''} onChange={e => setEdu(i, 'field', e.target.value)} className={inp} placeholder="Information Technology" /></div>
-                          <div><label className={lbl}>Institution</label><input type="text" value={edu.institution || ''} onChange={e => setEdu(i, 'institution', e.target.value)} className={inp} placeholder="MIT" /></div>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div><label className={lbl}>Dates</label><input type="text" value={edu.dates || ''} onChange={e => setEdu(i, 'dates', e.target.value)} className={inp} placeholder="2016–2020" /></div>
-                            <div><label className={lbl}>GPA / Grade</label><input type="text" value={edu.gpa || ''} onChange={e => setEdu(i, 'gpa', e.target.value)} className={inp} placeholder="3.9/4.0" /></div>
+                          <div className="p-5 space-y-3.5">
+                            <div className="space-y-1"><label className={lbl}>Degree / Qualification</label><input type="text" value={edu.degree || ''} onChange={e => setEdu(i, 'degree', e.target.value)} className={`${inp} bg-[#070811]/60`} placeholder="B.Sc. Computer Science" /></div>
+                            <div className="space-y-1"><label className={lbl}>Field of Study</label><input type="text" value={edu.field || ''} onChange={e => setEdu(i, 'field', e.target.value)} className={`${inp} bg-[#070811]/60`} placeholder="Information Technology" /></div>
+                            <div className="space-y-1"><label className={lbl}>Institution</label><input type="text" value={edu.institution || ''} onChange={e => setEdu(i, 'institution', e.target.value)} className={`${inp} bg-[#070811]/60`} placeholder="MIT" /></div>
+                            <div className="grid grid-cols-2 gap-3.5">
+                              <div className="space-y-1"><label className={lbl}>Dates</label><input type="text" value={edu.dates || ''} onChange={e => setEdu(i, 'dates', e.target.value)} className={`${inp} bg-[#070811]/60`} placeholder="2016–2020" /></div>
+                              <div className="space-y-1"><label className={lbl}>GPA / Grade</label><input type="text" value={edu.gpa || ''} onChange={e => setEdu(i, 'gpa', e.target.value)} className={`${inp} bg-[#070811]/60`} placeholder="3.9/4.0" /></div>
+                            </div>
+                            <div className="space-y-1"><label className={lbl}>Achievements / Notes</label><textarea value={edu.achievements || ''} onChange={e => setEdu(i, 'achievements', e.target.value)} rows={2} className={`${ta} bg-[#070811]/60`} placeholder="Dean's List, thesis topic…" /></div>
                           </div>
-                          <div><label className={lbl}>Achievements / Notes</label><textarea value={edu.achievements || ''} onChange={e => setEdu(i, 'achievements', e.target.value)} rows={2} className={ta} placeholder="Dean's List, Valedictorian, thesis topic…" /></div>
                         </div>
                       </div>
                     ))}
                   </div>
                   {(!selected.education || selected.education.length === 0) && (
-                    <div className="py-16 text-center border border-dashed border-white/8 rounded-2xl text-gray-600 text-sm">No education entries yet.</div>
+                    <div className="py-20 text-center border border-dashed border-white/5 rounded-2xl text-gray-500 text-sm glass-panel">No education records mapped yet.</div>
                   )}
                 </div>
               )}
 
               {/* ── SKILLS ── */}
               {tab === 'skills' && (
-                <div className="space-y-5">
+                <div className="space-y-6 animate-fade-in">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs text-gray-500">{selected.skills?.length || 0} categor{selected.skills?.length === 1 ? 'y' : 'ies'}</p>
-                    <button type="button" onClick={addSkillGroup} className="px-4 py-2 rounded-xl bg-purple-600/15 border border-purple-500/30 text-purple-300 text-xs font-bold hover:bg-purple-600/25 transition cursor-pointer">+ Add Category</button>
+                    <p className="text-xs text-gray-400 font-medium">{selected.skills?.length || 0} skill categor{selected.skills?.length === 1 ? 'y' : 'ies'}</p>
+                    <button type="button" onClick={() => setPopup({ type: 'skill', data: {} })} className="px-4 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-bold hover:bg-purple-500/20 transition-all duration-200 cursor-pointer shadow-sm shadow-purple-500/5 flex items-center gap-1.5 active:scale-98">+ Add Category</button>
                   </div>
-                  {selected.skills?.map((group, gIdx) => {
-                    const col = CAT_COLORS[gIdx % CAT_COLORS.length];
-                    return (
-                      <div key={gIdx} className={`bg-[#12131f] border border-white/6 border-l-4 ${col.border} rounded-2xl p-5 space-y-4`}>
-                        <div className="flex items-center gap-3">
-                          <input type="text" value={group.category || ''} onChange={e => setSkillCat(gIdx, e.target.value)}
-                            className={`flex-1 bg-transparent text-sm font-extrabold outline-none border-b border-white/10 focus:border-purple-500/50 py-1 placeholder-gray-700 ${col.header}`}
-                            placeholder="Category name (e.g. Programming Languages)"
-                          />
-                          <button type="button" onClick={() => delSkillGroup(gIdx)} className="text-gray-600 hover:text-red-400 text-[10px] font-semibold cursor-pointer px-2 py-1 rounded hover:bg-red-500/10 transition">Remove</button>
-                        </div>
-                        <div className="flex flex-wrap gap-2 min-h-[36px]">
-                          {group.items?.filter(s => s.trim()).map((item, iIdx) => (
-                            <div key={iIdx} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold ${col.pill}`}>
-                              <span>{item}</span>
-                              <button type="button" onClick={() => delSkillItem(gIdx, iIdx)} className="opacity-50 hover:opacity-100 hover:text-red-400 transition text-[10px] font-bold cursor-pointer">✕</button>
-                            </div>
-                          ))}
-                          {(!group.items || group.items.filter(s => s.trim()).length === 0) && (
-                            <p className="text-xs text-gray-700 italic">No skills yet — type below to add.</p>
-                          )}
-                        </div>
-                        <div className="flex gap-2 pt-2 border-t border-white/5">
-                          <input type="text" placeholder="Type skill + press Enter or comma…"
-                            className="flex-1 px-3 py-2 bg-[#0a0b14] border border-white/8 focus:border-purple-500/60 rounded-lg text-gray-200 text-xs outline-none transition placeholder-gray-700"
-                            onKeyDown={e => {
-                              if ((e.key === 'Enter' || e.key === ',') && e.target.value.trim()) {
-                                e.preventDefault();
-                                const val = e.target.value.trim().replace(/,$/, '');
+                  <div className="space-y-5">
+                    {selected.skills?.map((group, gIdx) => {
+                      const col = CAT_COLORS[gIdx % CAT_COLORS.length];
+                      return (
+                        <div key={gIdx} className={`glass-panel rounded-2xl border-l-4 ${col.border} p-5 space-y-4 shadow-lg`}>
+                          <div className="flex items-center gap-3">
+                            <input type="text" value={group.category || ''} onChange={e => setSkillCat(gIdx, e.target.value)}
+                              className={`flex-1 bg-transparent text-sm font-extrabold outline-none border-b border-white/5 focus:border-purple-500/30 py-1.5 placeholder-gray-600 transition ${col.header}`}
+                              placeholder="Category name (e.g. Frontend Development)"
+                            />
+                            <button type="button" onClick={() => delSkillGroup(gIdx)} className="text-gray-500 hover:text-red-400 text-xs font-semibold cursor-pointer px-2.5 py-1.5 rounded-xl hover:bg-red-500/10 transition">Remove</button>
+                          </div>
+                          <div className="flex flex-wrap gap-2.5 min-h-[38px]">
+                            {group.items?.filter(s => s.trim()).map((item, iIdx) => (
+                              <div key={iIdx} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold shadow-sm transition-all duration-200 hover:scale-102 ${col.pill}`}>
+                                <span>{item}</span>
+                                <button type="button" onClick={() => delSkillItem(gIdx, iIdx)} className="opacity-40 hover:opacity-100 hover:text-red-400 transition text-[10px] font-black cursor-pointer">✕</button>
+                              </div>
+                            ))}
+                            {(!group.items || group.items.filter(s => s.trim()).length === 0) && (
+                              <p className="text-xs text-gray-500 italic py-1">No skills mapped yet — enter details below.</p>
+                            )}
+                          </div>
+                          <div className="flex gap-2.5 pt-3 border-t border-white/5">
+                            <input type="text" placeholder="Type a skill and press Enter or use commas…"
+                              className="flex-1 px-4 py-2.5 bg-[#070811]/60 border border-white/5 focus:border-purple-500/50 rounded-xl text-gray-200 text-xs outline-none transition placeholder-gray-600 focus:shadow-[0_0_12px_rgba(139,92,246,0.15)]"
+                              onKeyDown={e => {
+                                if ((e.key === 'Enter' || e.key === ',') && e.target.value.trim()) {
+                                  e.preventDefault();
+                                  const val = e.target.value.trim().replace(/,$/, '');
+                                  addSkillItem(gIdx);
+                                  setSelected(p => { const s=[...p.skills]; const items=[...(s[gIdx].items||[])]; items[items.length-1]=val; s[gIdx]={...s[gIdx],items}; return {...p,skills:s}; });
+                                  e.target.value = '';
+                                }
+                              }}
+                            />
+                            <button type="button"
+                              onClick={e => {
+                                const input = e.currentTarget.previousSibling;
+                                const val = input.value.trim();
+                                if (!val) return;
                                 addSkillItem(gIdx);
                                 setSelected(p => { const s=[...p.skills]; const items=[...(s[gIdx].items||[])]; items[items.length-1]=val; s[gIdx]={...s[gIdx],items}; return {...p,skills:s}; });
-                                e.target.value = '';
-                              }
-                            }}
-                          />
-                          <button type="button"
-                            onClick={e => {
-                              const input = e.currentTarget.previousSibling;
-                              const val = input.value.trim();
-                              if (!val) return;
-                              addSkillItem(gIdx);
-                              setSelected(p => { const s=[...p.skills]; const items=[...(s[gIdx].items||[])]; items[items.length-1]=val; s[gIdx]={...s[gIdx],items}; return {...p,skills:s}; });
-                              input.value = '';
-                            }}
-                            className={`px-4 py-2 rounded-lg border text-xs font-bold transition cursor-pointer ${col.pill}`}
-                          >Add</button>
+                                input.value = '';
+                              }}
+                              className={`px-4 py-2.5 rounded-xl border text-xs font-bold transition-all duration-200 cursor-pointer flex items-center ${col.pill} hover:scale-102`}
+                            >Add</button>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                   {(!selected.skills || selected.skills.length === 0) && (
-                    <div className="py-16 text-center border border-dashed border-white/8 rounded-2xl text-gray-600 text-sm">No skill categories yet. Click <strong className="text-gray-400">+ Add Category</strong> to start.</div>
+                    <div className="py-20 text-center border border-dashed border-white/5 rounded-2xl text-gray-500 text-sm glass-panel">No skill categories setup. Click <strong className="text-purple-400">+ Add Category</strong>.</div>
                   )}
                 </div>
               )}
 
               {/* ── PROJECTS ── */}
               {tab === 'projects' && (
-                <div className="space-y-5">
+                <div className="space-y-6 animate-fade-in">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs text-gray-500">{selected.projects?.length || 0} project{selected.projects?.length === 1 ? '' : 's'}</p>
-                    <button type="button" onClick={addProj} className="px-4 py-2 rounded-xl bg-purple-600/15 border border-purple-500/30 text-purple-300 text-xs font-bold hover:bg-purple-600/25 transition cursor-pointer">+ Add Project</button>
+                    <p className="text-xs text-gray-400 font-medium">{selected.projects?.length || 0} professional projects</p>
+                    <button type="button" onClick={() => setPopup({ type: 'proj', data: {} })} className="px-4 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-bold hover:bg-purple-500/20 transition-all duration-200 cursor-pointer shadow-sm shadow-purple-500/5 flex items-center gap-1.5 active:scale-98">
+                      <span>🛠</span> + Add Project
+                    </button>
                   </div>
-                  {selected.projects?.map((proj, pi) => (
-                    <div key={pi} className="bg-[#12131f] border border-white/6 rounded-2xl overflow-hidden">
-                      {/* project header bar */}
-                      <div className="px-5 py-3 bg-gradient-to-r from-purple-900/20 to-cyan-900/10 border-b border-white/6 flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-xs">🛠</div>
-                          <span className="text-xs font-bold text-gray-300">{proj.name || 'New Project'}</span>
-                          {proj.status && (
-                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${
-                              proj.status === 'Completed' ? 'bg-green-500/15 text-green-400 border-green-500/25' :
-                              proj.status === 'In Progress' ? 'bg-amber-500/15 text-amber-400 border-amber-500/25' :
-                              'bg-gray-500/15 text-gray-400 border-gray-500/25'
-                            }`}>{proj.status}</span>
-                          )}
-                        </div>
-                        <button type="button" onClick={() => delProj(pi)} className="text-gray-600 hover:text-red-400 text-[10px] cursor-pointer px-2 py-1 hover:bg-red-500/10 rounded transition">Remove</button>
-                      </div>
-
-                      <div className="p-5 space-y-4">
-                        {/* row 1: name + role */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div><label className={lbl}>Project Name</label><input type="text" value={proj.name || ''} onChange={e => setProj(pi, 'name', e.target.value)} className={inp} placeholder="My Awesome Project" /></div>
-                          <div><label className={lbl}>Your Role</label><input type="text" value={proj.role || ''} onChange={e => setProj(pi, 'role', e.target.value)} className={inp} placeholder="Lead Developer / Full Stack" /></div>
-                        </div>
-
-                        {/* row 2: dates + status */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div><label className={lbl}>Timeline / Dates</label><input type="text" value={proj.dates || ''} onChange={e => setProj(pi, 'dates', e.target.value)} className={inp} placeholder="Jan 2024 – Mar 2024" /></div>
-                          <div>
-                            <label className={lbl}>Status</label>
-                            <select value={proj.status || ''} onChange={e => setProj(pi, 'status', e.target.value)}
-                              className="w-full px-4 py-3 bg-[#0a0b14] border border-white/8 focus:border-purple-500/60 rounded-xl text-gray-200 text-sm outline-none transition">
-                              <option value="">-- Select Status --</option>
-                              <option value="In Progress">In Progress</option>
-                              <option value="Completed">Completed</option>
-                              <option value="Archived">Archived</option>
-                            </select>
+                  <div className="space-y-5">
+                    {selected.projects?.map((proj, pi) => (
+                      <div key={pi} className="glass-panel glass-panel-hover rounded-2xl overflow-hidden border border-white/5 shadow-lg">
+                        {/* project header bar */}
+                        <div className="px-6 py-4 bg-gradient-to-r from-purple-950/10 to-cyan-950/5 border-b border-white/5 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-sm shadow-inner">🛠</div>
+                            <span className="text-xs font-extrabold text-gray-200 tracking-wide">{proj.name || 'New Project'}</span>
+                            {proj.status && (
+                              <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${
+                                proj.status === 'Completed' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                                proj.status === 'In Progress' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                                'bg-gray-500/10 text-gray-400 border-gray-500/20'
+                              }`}>{proj.status}</span>
+                            )}
                           </div>
+                          <button type="button" onClick={() => delProj(pi)} className="text-gray-400 hover:text-red-400 hover:bg-red-500/10 text-xs cursor-pointer px-3 py-1.5 rounded-xl transition duration-200 font-semibold border border-transparent hover:border-red-500/10">Remove</button>
                         </div>
 
-                        {/* row 3: live link + github */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div><label className={lbl}>Live URL</label><input type="text" value={proj.link || ''} onChange={e => setProj(pi, 'link', e.target.value)} className={inp} placeholder="https://myproject.com" /></div>
-                          <div><label className={lbl}>GitHub / Source</label><input type="text" value={proj.github || ''} onChange={e => setProj(pi, 'github', e.target.value)} className={inp} placeholder="https://github.com/user/repo" /></div>
-                        </div>
-
-                        {/* tech stack */}
-                        <div><label className={lbl}>Tech Stack</label><input type="text" value={proj.tech || ''} onChange={e => setProj(pi, 'tech', e.target.value)} className={inp} placeholder="React, Node.js, PostgreSQL, Docker…" /></div>
-
-                        {/* description */}
-                        <div><label className={lbl}>Description</label><textarea value={proj.description || ''} onChange={e => setProj(pi, 'description', e.target.value)} rows={3} className={ta} placeholder="Brief overview of what this project does, the problem it solves…" /></div>
-
-                        {/* highlights / bullets */}
-                        <div className="space-y-2 pt-3 border-t border-white/5">
-                          <div className="flex justify-between items-center">
-                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Key Highlights</label>
-                            <button type="button" onClick={() => addProjHL(pi)} className={addB}>+ Add Highlight</button>
+                        <div className="p-6 space-y-5">
+                          {/* row 1: name + role */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1"><label className={lbl}>Project Name</label><input type="text" value={proj.name || ''} onChange={e => setProj(pi, 'name', e.target.value)} className={`${inp} bg-[#070811]/60`} placeholder="My Awesome Project" /></div>
+                            <div className="space-y-1"><label className={lbl}>Your Role</label><input type="text" value={proj.role || ''} onChange={e => setProj(pi, 'role', e.target.value)} className={`${inp} bg-[#070811]/60`} placeholder="Lead Developer / Full Stack" /></div>
                           </div>
-                          {proj.highlights?.map((hl, hi) => (
-                            <div key={hi} className="flex gap-2 items-start">
-                              <span className="text-cyan-500 mt-3.5 text-xs shrink-0">▸</span>
-                              <textarea value={hl} onChange={e => setProjHL(pi, hi, e.target.value)} rows={2} className={`${ta} flex-1`} placeholder="Implemented X feature that reduced load time by 40%…" />
-                              <button type="button" onClick={() => delProjHL(pi, hi)} className={`${delB} mt-2`}>✕</button>
+
+                          {/* row 2: dates + status */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1"><label className={lbl}>Timeline / Dates</label><input type="text" value={proj.dates || ''} onChange={e => setProj(pi, 'dates', e.target.value)} className={`${inp} bg-[#070811]/60`} placeholder="Jan 2024 – Mar 2024" /></div>
+                            <div className="space-y-1">
+                              <label className={lbl}>Status</label>
+                              <select value={proj.status || ''} onChange={e => setProj(pi, 'status', e.target.value)}
+                                className="w-full px-4 py-3 bg-[#070811]/60 border border-white/5 focus:border-purple-500/50 rounded-xl text-gray-200 text-sm outline-none transition focus:shadow-[0_0_12px_rgba(139,92,246,0.15)]">
+                                <option value="">-- Select Status --</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Archived">Archived</option>
+                              </select>
                             </div>
-                          ))}
-                          {(!proj.highlights || proj.highlights.length === 0) && (
-                            <p className="text-xs text-gray-700 italic">Click + Add Highlight to add key achievements for this project.</p>
-                          )}
+                          </div>
+
+                          {/* row 3: live link + github */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1"><label className={lbl}>Live URL</label><input type="text" value={proj.link || ''} onChange={e => setProj(pi, 'link', e.target.value)} className={`${inp} bg-[#070811]/60`} placeholder="https://myproject.com" /></div>
+                            <div className="space-y-1"><label className={lbl}>GitHub / Source</label><input type="text" value={proj.github || ''} onChange={e => setProj(pi, 'github', e.target.value)} className={`${inp} bg-[#070811]/60`} placeholder="https://github.com/user/repo" /></div>
+                          </div>
+
+                          {/* tech stack */}
+                          <div className="space-y-1"><label className={lbl}>Tech Stack</label><input type="text" value={proj.tech || ''} onChange={e => setProj(pi, 'tech', e.target.value)} className={`${inp} bg-[#070811]/60`} placeholder="React, Next.js, Tailwind, Postgres, Docker…" /></div>
+
+                          {/* description */}
+                          <div className="space-y-1"><label className={lbl}>Description</label><textarea value={proj.description || ''} onChange={e => setProj(pi, 'description', e.target.value)} rows={3} className={`${ta} bg-[#070811]/60`} placeholder="Brief overview of what this project does, the problem it solves…" /></div>
+
+                          {/* highlights / bullets */}
+                          <div className="space-y-3.5 pt-4 border-t border-white/5">
+                            <div className="flex justify-between items-center">
+                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Key Accomplishments</label>
+                              <button type="button" onClick={() => addProjHL(pi)} className={`${addB} hover:scale-102`}>+ Add Accomplishment</button>
+                            </div>
+                            <div className="space-y-3">
+                              {proj.highlights?.map((hl, hi) => (
+                                <div key={hi} className="flex gap-3 items-start group/project-hl">
+                                  <span className="text-cyan-400/80 mt-3 text-xs shrink-0 select-none">▸</span>
+                                  <textarea value={hl} onChange={e => setProjHL(pi, hi, e.target.value)} rows={2} className={`${ta} flex-1 bg-[#070811]/60 focus:bg-[#070811]/90 py-2.5`} placeholder="Implemented X feature that reduced database read latency by 40%…" />
+                                  <button type="button" onClick={() => delProjHL(pi, hi)} className={`${delB} mt-2.5 opacity-0 group-hover/project-hl:opacity-100 p-1.5 hover:bg-white/5 rounded-lg`}>✕</button>
+                                </div>
+                              ))}
+                            </div>
+                            {(!proj.highlights || proj.highlights.length === 0) && (
+                              <p className="text-xs text-gray-500 italic py-1">No accomplishments added. Click + Add Accomplishment to log accomplishments.</p>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                   {(!selected.projects || selected.projects.length === 0) && (
-                    <div className="py-16 text-center border border-dashed border-white/8 rounded-2xl text-gray-600 text-sm">No projects yet. Click <strong className="text-gray-400">+ Add Project</strong> to start.</div>
+                    <div className="py-20 text-center border border-dashed border-white/5 rounded-2xl text-gray-500 text-sm glass-panel">No projects mapped. Click <strong className="text-purple-400">+ Add Project</strong> to begin.</div>
                   )}
                 </div>
               )}
 
               {/* ── EXTRA ── */}
               {tab === 'extra' && (
-                <div className="space-y-6 max-w-2xl">
-                  <div className="bg-[#12131f] border border-white/6 rounded-2xl p-5 space-y-4">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-sm font-bold text-white flex items-center gap-2">🏅 Certifications</h3>
-                      <button type="button" onClick={addCert} className={addB}>+ Add</button>
+                <div className="space-y-6 max-w-2xl animate-fade-in">
+                  <div className="glass-panel rounded-2xl p-6 space-y-4 shadow-lg">
+                    <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                      <h3 className="text-xs font-black text-white/90 uppercase tracking-widest flex items-center gap-2">🏅 Certifications</h3>
+                      <button type="button" onClick={() => setPopup({ type: 'cert', data: {} })} className={addB}>+ Add Cert</button>
                     </div>
-                    <div className="space-y-2.5">
+                    <div className="space-y-3">
                       {selected.certifications?.map((cert, i) => (
-                        <div key={i} className="flex gap-2.5">
-                          <input type="text" value={cert} onChange={e => setCert(i, e.target.value)} className={`${inp} flex-1`} placeholder="AWS Certified Developer – Associate (2024)" />
-                          <button type="button" onClick={() => delCert(i)} className={delB}>✕</button>
+                        <div key={i} className="flex gap-2.5 items-center group/cert">
+                          <input type="text" value={cert} onChange={e => setCert(i, e.target.value)} className={`${inp} bg-[#070811]/60 flex-1`} placeholder="AWS Certified Developer – Associate (2024)" />
+                          <button type="button" onClick={() => delCert(i)} className={`${delB} opacity-0 group-hover/cert:opacity-100 p-2 hover:bg-white/5 rounded-lg`}>✕</button>
                         </div>
                       ))}
-                      {(!selected.certifications || selected.certifications.length === 0) && <p className="text-xs text-gray-600 italic">None added.</p>}
+                      {(!selected.certifications || selected.certifications.length === 0) && <p className="text-xs text-gray-500 italic">No certifications listed yet.</p>}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="bg-[#12131f] border border-white/6 rounded-2xl p-5 space-y-4">
-                      <div className="flex justify-between items-center">
-                        <h3 className="text-sm font-bold text-white flex items-center gap-2">🌐 Languages</h3>
-                        <button type="button" onClick={() => addAddl('languages')} className={addB}>+ Add</button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="glass-panel rounded-2xl p-6 space-y-4 shadow-lg">
+                      <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                        <h3 className="text-xs font-black text-white/90 uppercase tracking-widest flex items-center gap-2">🌐 Languages</h3>
+                        <button type="button" onClick={() => setPopup({ type: 'lang', data: {} })} className={addB}>+ Add</button>
                       </div>
-                      <div className="space-y-2.5">
+                      <div className="space-y-3">
                         {selected.additionalInfo?.languages?.map((lang, i) => (
-                          <div key={i} className="flex gap-2.5">
-                            <input type="text" value={lang} onChange={e => setAddl('languages', i, e.target.value)} className={`${inp} flex-1`} placeholder="English (Native)" />
-                            <button type="button" onClick={() => delAddl('languages', i)} className={delB}>✕</button>
+                          <div key={i} className="flex gap-2.5 items-center group/lang">
+                            <input type="text" value={lang} onChange={e => setAddl('languages', i, e.target.value)} className={`${inp} bg-[#070811]/60 flex-1`} placeholder="English (Native)" />
+                            <button type="button" onClick={() => delAddl('languages', i)} className={`${delB} opacity-0 group-hover/lang:opacity-100 p-2 hover:bg-white/5 rounded-lg`}>✕</button>
                           </div>
                         ))}
-                        {(!selected.additionalInfo?.languages || selected.additionalInfo.languages.length === 0) && <p className="text-xs text-gray-600 italic">None added.</p>}
+                        {(!selected.additionalInfo?.languages || selected.additionalInfo.languages.length === 0) && <p className="text-xs text-gray-500 italic">No languages configured.</p>}
                       </div>
                     </div>
 
-                    <div className="bg-[#12131f] border border-white/6 rounded-2xl p-5 space-y-4">
-                      <div className="flex justify-between items-center">
-                        <h3 className="text-sm font-bold text-white flex items-center gap-2">🎯 Interests</h3>
-                        <button type="button" onClick={() => addAddl('hobbies')} className={addB}>+ Add</button>
+                    <div className="glass-panel rounded-2xl p-6 space-y-4 shadow-lg">
+                      <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                        <h3 className="text-xs font-black text-white/90 uppercase tracking-widest flex items-center gap-2">🎯 Interests</h3>
+                        <button type="button" onClick={() => setPopup({ type: 'hobby', data: {} })} className={addB}>+ Add</button>
                       </div>
-                      <div className="space-y-2.5">
+                      <div className="space-y-3">
                         {selected.additionalInfo?.hobbies?.map((h, i) => (
-                          <div key={i} className="flex gap-2.5">
-                            <input type="text" value={h} onChange={e => setAddl('hobbies', i, e.target.value)} className={`${inp} flex-1`} placeholder="Photography" />
-                            <button type="button" onClick={() => delAddl('hobbies', i)} className={delB}>✕</button>
+                          <div key={i} className="flex gap-2.5 items-center group/hobby">
+                            <input type="text" value={h} onChange={e => setAddl('hobbies', i, e.target.value)} className={`${inp} bg-[#070811]/60 flex-1`} placeholder="Photography" />
+                            <button type="button" onClick={() => delAddl('hobbies', i)} className={`${delB} opacity-0 group-hover/hobby:opacity-100 p-2 hover:bg-white/5 rounded-lg`}>✕</button>
                           </div>
                         ))}
-                        {(!selected.additionalInfo?.hobbies || selected.additionalInfo.hobbies.length === 0) && <p className="text-xs text-gray-600 italic">None added.</p>}
+                        {(!selected.additionalInfo?.hobbies || selected.additionalInfo.hobbies.length === 0) && <p className="text-xs text-gray-500 italic">No interests listed.</p>}
                       </div>
                     </div>
                   </div>
@@ -655,45 +717,52 @@ export default function ResumesPage() {
             </div>{/* end scrollable body */}
 
             {/* ── Bottom action bar ── */}
-            <div className="shrink-0 px-6 py-3 border-t border-white/6 bg-[#0a0b14] flex items-center justify-between gap-4">
+            <div className="shrink-0 px-6 py-4 border-t border-white/5 bg-[#0a0b18]/60 backdrop-blur-md flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <label className={`px-4 py-2 rounded-xl border text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
-                  uploading ? 'bg-purple-900/30 border-purple-500/30 text-purple-400' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:text-white'
+                <label className={`px-4 py-2.5 rounded-xl border text-xs font-bold transition-all duration-300 cursor-pointer flex items-center gap-2 ${
+                  uploading 
+                    ? 'bg-purple-900/20 border-purple-500/30 text-purple-300' 
+                    : 'bg-white/3 border-white/5 text-gray-300 hover:bg-white/5 hover:text-white shadow-sm'
                 }`}>
-                  {uploading ? <><div className="w-3 h-3 border border-purple-400 border-t-transparent rounded-full animate-spin" /> Parsing…</> : <><span>📂</span> Re-upload</>}
+                  {uploading ? <><div className="w-3.5 h-3.5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" /> Uploading...</> : <><span>📂</span> Re-upload</>}
                   <input type="file" accept=".pdf,.docx,.txt" onChange={handleUpload} disabled={uploading} className="hidden" />
                 </label>
                 <button type="button" onClick={() => setShowPrint(true)}
-                  className="px-4 py-2 rounded-xl border border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white text-xs font-semibold transition cursor-pointer flex items-center gap-1.5">
+                  className="px-4 py-2.5 rounded-xl border border-white/5 bg-white/3 text-gray-300 hover:bg-white/5 hover:text-white text-xs font-bold transition-all duration-300 cursor-pointer flex items-center gap-2 shadow-sm">
                   ⬇️ Download PDF
                 </button>
               </div>
               <button type="submit" disabled={saving}
-                className={`px-6 py-2 rounded-xl font-bold text-sm shadow-lg transition-all cursor-pointer flex items-center gap-2 ${
-                  saving ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white'
+                className={`px-7 py-2.5 rounded-xl font-extrabold text-xs uppercase tracking-wider shadow-lg transition-all duration-300 cursor-pointer flex items-center gap-2 active:scale-98 ${
+                  saving 
+                    ? 'bg-purple-500/10 text-purple-300 border border-purple-500/20' 
+                    : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-500/10 hover:shadow-purple-500/20 hover:scale-102'
                 }`}>
-                {saving ? <><div className="w-4 h-4 border-2 border-purple-700 border-t-white rounded-full animate-spin" /> Saving…</> : '💾 Save Changes'}
+                {saving ? <><div className="w-3.5 h-3.5 border-2 border-purple-700 border-t-white rounded-full animate-spin" /> Saving...</> : '💾 Save Changes'}
               </button>
             </div>
 
           </form>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center gap-5 text-center p-8">
-            <div className="text-5xl">📄</div>
-            <div>
-              <h2 className="text-lg font-bold text-white">No resume selected</h2>
-              <p className="text-sm text-gray-500 mt-1.5 max-w-xs mx-auto">
-                {resumes.length > 0 ? 'Pick a resume from the left panel.' : 'Create your first resume version to get started.'}
+          <div className="flex-1 flex flex-col items-center justify-center gap-6 text-center p-8 relative">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500/10 to-indigo-500/10 flex items-center justify-center text-4xl border border-purple-500/15 shadow-xl shadow-purple-500/5 animate-pulse">
+              📄
+            </div>
+            <div className="space-y-1">
+              <h2 className="text-base font-extrabold text-white tracking-wide">No Resume Selected</h2>
+              <p className="text-xs text-gray-400 max-w-[280px] mx-auto leading-relaxed">
+                {resumes.length > 0 ? 'Choose an existing version from the sidebar to review and customize.' : 'Begin your application journey by forging a new resume profile.'}
               </p>
             </div>
             {resumes.length === 0 && (
-              <button onClick={handleCreate} className="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold transition cursor-pointer">
+              <button onClick={handleCreate} className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold transition-all duration-300 cursor-pointer shadow-lg shadow-purple-500/10 hover:shadow-purple-500/20 active:scale-98 hover:scale-102">
                 + Create First Resume
               </button>
             )}
           </div>
         )}
       </div>
+
 
       {/* ══════ PDF PRINT PREVIEW MODAL ══════ */}
       {showPrint && selected && (
@@ -823,6 +892,224 @@ export default function ResumesPage() {
         </div>
       )}
 
+    </div>
+  );
+}
+
+function AddItemPopup({ type, data, onChange, onSubmit, onClose }) {
+  const titleMap = {
+    work: 'Add Work Experience',
+    edu: 'Add Education',
+    skill: 'Add Skill Category',
+    proj: 'Add Project',
+    cert: 'Add Certification',
+    lang: 'Add Language',
+    hobby: 'Add Interest / Hobby'
+  };
+
+  const updateField = (field, val) => {
+    onChange({
+      type,
+      data: {
+        ...data,
+        [field]: val
+      }
+    });
+  };
+
+  const inp = 'w-full px-4 py-3 bg-[#0a0b14] border border-white/8 focus:border-purple-500/60 rounded-xl text-gray-200 text-sm outline-none transition placeholder-gray-600';
+  const ta = `${inp} resize-none leading-relaxed`;
+  const lbl = 'block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5';
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="w-full max-w-lg bg-[#0c0d19] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-fade-in text-left">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-white/5 bg-[#0a0b18]/60 flex items-center justify-between">
+          <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+            {titleMap[type] || 'Add Item'}
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition text-lg"
+          >
+            ✕
+          </button>
+        </div>
+
+        <form onSubmit={onSubmit}>
+          <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+            {type === 'work' && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className={lbl}>Job Title</label>
+                    <input type="text" required className={inp} value={data.title || ''} onChange={e => updateField('title', e.target.value)} placeholder="e.g. Software Engineer" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className={lbl}>Company</label>
+                    <input type="text" required className={inp} value={data.company || ''} onChange={e => updateField('company', e.target.value)} placeholder="e.g. Acme Corp" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className={lbl}>Location</label>
+                    <input type="text" className={inp} value={data.location || ''} onChange={e => updateField('location', e.target.value)} placeholder="e.g. Remote / New York" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className={lbl}>Date Range</label>
+                    <input type="text" required className={inp} value={data.dates || ''} onChange={e => updateField('dates', e.target.value)} placeholder="e.g. Jan 2021 – Present" />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className={lbl}>Accomplishments (One per line)</label>
+                  <textarea rows={4} className={ta} value={data.bulletsText || ''} onChange={e => updateField('bulletsText', e.target.value)} placeholder="Developed X features...&#10;Led a team of 4 engineers..." />
+                </div>
+              </>
+            )}
+
+            {type === 'edu' && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className={lbl}>Institution</label>
+                    <input type="text" required className={inp} value={data.institution || ''} onChange={e => updateField('institution', e.target.value)} placeholder="e.g. MIT" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className={lbl}>Degree / Qualification</label>
+                    <input type="text" required className={inp} value={data.degree || ''} onChange={e => updateField('degree', e.target.value)} placeholder="e.g. Bachelor of Science" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className={lbl}>Field of Study</label>
+                    <input type="text" className={inp} value={data.field || ''} onChange={e => updateField('field', e.target.value)} placeholder="e.g. Computer Science" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className={lbl}>Dates</label>
+                    <input type="text" required className={inp} value={data.dates || ''} onChange={e => updateField('dates', e.target.value)} placeholder="e.g. 2016 – 2020" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className={lbl}>GPA / Grade</label>
+                    <input type="text" className={inp} value={data.gpa || ''} onChange={e => updateField('gpa', e.target.value)} placeholder="e.g. 3.9/4.0" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className={lbl}>Achievements / Notes</label>
+                    <input type="text" className={inp} value={data.achievements || ''} onChange={e => updateField('achievements', e.target.value)} placeholder="Dean's List, honors, activities..." />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {type === 'skill' && (
+              <>
+                <div className="space-y-1">
+                  <label className={lbl}>Category Name</label>
+                  <input type="text" required className={inp} value={data.category || ''} onChange={e => updateField('category', e.target.value)} placeholder="e.g. Backend Development" />
+                </div>
+                <div className="space-y-1">
+                  <label className={lbl}>Skills (Comma separated)</label>
+                  <input type="text" required className={inp} value={data.skills || ''} onChange={e => updateField('skills', e.target.value)} placeholder="Node.js, Express, PostgreSQL" />
+                </div>
+              </>
+            )}
+
+            {type === 'proj' && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className={lbl}>Project Name</label>
+                    <input type="text" required className={inp} value={data.name || ''} onChange={e => updateField('name', e.target.value)} placeholder="e.g. My Portfolio Site" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className={lbl}>Your Role</label>
+                    <input type="text" className={inp} value={data.role || ''} onChange={e => updateField('role', e.target.value)} placeholder="e.g. Creator / Developer" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className={lbl}>Dates</label>
+                    <input type="text" className={inp} value={data.dates || ''} onChange={e => updateField('dates', e.target.value)} placeholder="e.g. Jan 2024" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className={lbl}>Status</label>
+                    <select className="w-full px-4 py-3 bg-[#0a0b14] border border-white/8 focus:border-purple-500 rounded-xl text-gray-200 text-sm outline-none" value={data.status || ''} onChange={e => updateField('status', e.target.value)}>
+                      <option value="">-- Select Status --</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Completed">Completed</option>
+                      <option value="Archived">Archived</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className={lbl}>Live URL</label>
+                    <input type="text" className={inp} value={data.link || ''} onChange={e => updateField('link', e.target.value)} placeholder="https://..." />
+                  </div>
+                  <div className="space-y-1">
+                    <label className={lbl}>GitHub URL</label>
+                    <input type="text" className={inp} value={data.github || ''} onChange={e => updateField('github', e.target.value)} placeholder="https://github.com/..." />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className={lbl}>Tech Stack</label>
+                  <input type="text" className={inp} value={data.tech || ''} onChange={e => updateField('tech', e.target.value)} placeholder="React, Next.js, Postgres" />
+                </div>
+                <div className="space-y-1">
+                  <label className={lbl}>Description</label>
+                  <textarea rows={2} className={ta} value={data.description || ''} onChange={e => updateField('description', e.target.value)} placeholder="Brief summary of what this project accomplished..." />
+                </div>
+                <div className="space-y-1">
+                  <label className={lbl}>Accomplishments (One per line)</label>
+                  <textarea rows={3} className={ta} value={data.highlightsText || ''} onChange={e => updateField('highlightsText', e.target.value)} placeholder="Decreased database response latency by 50%..." />
+                </div>
+              </>
+            )}
+
+            {(type === 'cert' || type === 'lang' || type === 'hobby') && (
+              <div className="space-y-1">
+                <label className={lbl}>
+                  {type === 'cert' && 'Certification Details'}
+                  {type === 'lang' && 'Language Name'}
+                  {type === 'hobby' && 'Interest / Hobby Details'}
+                </label>
+                <input 
+                  type="text" 
+                  required 
+                  className={inp} 
+                  value={data.name || ''} 
+                  onChange={e => updateField('name', e.target.value)} 
+                  placeholder={
+                    type === 'cert' ? 'e.g. AWS Certified Solutions Architect' :
+                    type === 'lang' ? 'e.g. French (Conversational)' :
+                    'e.g. Competitive Programming'
+                  } 
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="px-6 py-4 border-t border-white/5 bg-[#0a0b18]/60 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2.5 rounded-xl border border-white/5 bg-white/3 hover:bg-white/5 text-gray-300 transition-all text-xs font-bold"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-lg shadow-purple-500/10 active:scale-98"
+            >
+              Add Item
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

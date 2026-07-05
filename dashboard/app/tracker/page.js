@@ -41,6 +41,7 @@ export default function TrackerPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
   const [detailTab, setDetailTab]   = useState('details'); // 'details' | 'resume'
+  const [activeStatus, setActiveStatus] = useState(null);
 
   /* ─── load data ─── */
   const loadTrackerData = async () => {
@@ -105,11 +106,13 @@ export default function TrackerPage() {
   /* ─── helpers ─── */
   const filteredJobs = allJobs.filter(job => {
     const q = searchQuery.toLowerCase();
-    return (
+    const matchesSearch = (
       (job.title   || '').toLowerCase().includes(q) ||
       (job.company || '').toLowerCase().includes(q) ||
       (job.location|| '').toLowerCase().includes(q)
     );
+    const matchesStatus = !activeStatus || job.status === activeStatus;
+    return matchesSearch && matchesStatus;
   });
 
   const getTally   = key => allJobs.filter(j => j.status === key).length;
@@ -182,15 +185,31 @@ export default function TrackerPage() {
 
       {/* ── Tally strip ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        {TALLY_ITEMS.map(({ label, key, color, border }) => (
-          <div
-            key={key}
-            className={`bg-[#12131a] border border-white/6 rounded-xl px-5 py-4 border-b-2 ${border}`}
-          >
-            <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">{label}</p>
-            <p className={`text-3xl font-black ${color}`}>{getTally(key)}</p>
-          </div>
-        ))}
+        {TALLY_ITEMS.map(({ label, key, color, border }) => {
+          const isActive = activeStatus === key;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => {
+                setActiveStatus(isActive ? null : key);
+              }}
+              className={`text-left rounded-xl px-5 py-4 border transition-all duration-300 cursor-pointer ${
+                isActive
+                  ? 'bg-purple-950/20 border-purple-500/30 shadow-[0_0_15px_rgba(139,92,246,0.1)] border-b-2'
+                  : 'bg-[#12131a] border-white/6 hover:border-white/12 hover:bg-white/[0.01] border-b-2'
+              } ${border}`}
+            >
+              <div className="flex justify-between items-start">
+                <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">{label}</p>
+                {isActive && (
+                  <span className="text-[8px] font-black uppercase tracking-wider bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded">Active</span>
+                )}
+              </div>
+              <p className={`text-3xl font-black ${color}`}>{getTally(key)}</p>
+            </button>
+          );
+        })}
       </div>
 
       {/* ══ SPLIT VIEW ══ */}
@@ -218,7 +237,18 @@ export default function TrackerPage() {
               </button>
             </div>
 
-            <p className="text-[11px] font-semibold text-gray-500 px-1">{filteredJobs.length} result{filteredJobs.length !== 1 ? 's' : ''}</p>
+            <div className="flex items-center justify-between px-1">
+               <p className="text-[11px] font-semibold text-gray-500">{filteredJobs.length} result{filteredJobs.length !== 1 ? 's' : ''}</p>
+               {activeStatus && (
+                 <button
+                   type="button"
+                   onClick={() => setActiveStatus(null)}
+                   className="text-[10px] font-bold text-purple-400 hover:text-purple-300 transition-colors cursor-pointer"
+                 >
+                   Clear Filter (Show All)
+                 </button>
+               )}
+             </div>
 
             {/* job list */}
             <div className="flex-1 overflow-y-auto space-y-2 pr-1" style={{ scrollbarWidth: 'thin' }}>

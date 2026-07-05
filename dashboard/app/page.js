@@ -510,7 +510,7 @@ export default function RootPage() {
         
         {/* Header Block */}
         <div className="flex justify-between items-center border-b border-white/5 pb-4">
-          <h1 className="text-2xl font-black text-white">Overview</h1>
+          <h1 className="text-2xl font-black text-white">Dashboard</h1>
           <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-900 border border-white/5 rounded-xl text-xs text-gray-300 select-none">
             <span>📅</span>
             <span>Analysis Period: <strong>Monthly</strong></span>

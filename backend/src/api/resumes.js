@@ -47,6 +47,46 @@ function stringifyFields(body) {
   return data;
 }
 
+async function syncToProfile(resume) {
+  if (!resume) return;
+  // If this resume is default, sync it to Profile table with id: 1
+  if (resume.isDefault) {
+    await prisma.profile.upsert({
+      where: { id: 1 },
+      update: {
+        name: resume.personName || '',
+        email: resume.email || '',
+        phone: resume.phone || '',
+        location: resume.location || '',
+        summary: resume.summary || '',
+        skills: resume.skills || '[]',
+        workHistory: resume.workHistory || '[]',
+        education: resume.education || '[]',
+        certifications: resume.certifications || '[]',
+        projects: resume.projects || '[]',
+        additionalInfo: resume.additionalInfo || '{}',
+        rawResumeText: resume.rawResumeText || '',
+      },
+      create: {
+        id: 1,
+        name: resume.personName || '',
+        email: resume.email || '',
+        phone: resume.phone || '',
+        location: resume.location || '',
+        summary: resume.summary || '',
+        skills: resume.skills || '[]',
+        workHistory: resume.workHistory || '[]',
+        education: resume.education || '[]',
+        certifications: resume.certifications || '[]',
+        projects: resume.projects || '[]',
+        additionalInfo: resume.additionalInfo || '{}',
+        rawResumeText: resume.rawResumeText || '',
+      }
+    });
+    console.log('Successfully synced default resume to legacy profile table ID 1.');
+  }
+}
+
 /* ─── GET /api/resumes ─── List all */
 router.get('/', async (req, res) => {
   try {
@@ -69,6 +109,7 @@ router.post('/', async (req, res) => {
         isDefault: count === 0,   // first resume is default automatically
       },
     });
+    await syncToProfile(resume);
     res.json(parseFields(resume));
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -94,6 +135,7 @@ router.put('/:id', async (req, res) => {
       where: { id: req.params.id },
       data,
     });
+    await syncToProfile(resume);
     res.json(parseFields(resume));
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -111,7 +153,12 @@ router.delete('/:id', async (req, res) => {
     // If deleted resume was default, set the most recent one as default
     if (existing.isDefault) {
       const next = await prisma.resume.findFirst({ orderBy: { updatedAt: 'desc' } });
-      if (next) await prisma.resume.update({ where: { id: next.id }, data: { isDefault: true } });
+      if (next) {
+        const updatedNext = await prisma.resume.update({ where: { id: next.id }, data: { isDefault: true } });
+        await syncToProfile(updatedNext);
+      } else {
+        await prisma.profile.deleteMany();
+      }
     }
 
     res.json({ message: 'Resume deleted.' });
@@ -146,6 +193,7 @@ router.put('/:id/set-default', async (req, res) => {
       where: { id: req.params.id },
       data: { isDefault: true },
     });
+    await syncToProfile(resume);
     res.json(parseFields(resume));
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -198,6 +246,8 @@ router.post('/:id/upload', upload.single('resume'), async (req, res) => {
         rawResumeText:  rawText,
       },
     });
+
+    await syncToProfile(resume);
 
     res.json({ message: 'Resume parsed successfully.', resume: parseFields(resume) });
   } catch (err) {

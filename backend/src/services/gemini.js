@@ -53,7 +53,7 @@ async function callGemini(contents, jsonSchema = null, model = DEFAULT_MODEL) {
  * Parse raw resume text into structured JSON profile
  */
 async function parseResume(resumeText) {
-  const prompt = `You are a resume parsing assistant. Parse the following raw resume text into a clean JSON structure containing contact info, professional summary, skills list, work history details, education, and certifications.
+  const prompt = `You are a resume parsing assistant. Parse the following raw resume text into a clean JSON structure containing contact info, professional summary, structured skills list, work history details, education, certifications, and projects.
 Make sure to extract all text details accurately.
 
 Raw Resume Text:
@@ -69,7 +69,17 @@ ${resumeText}`;
       summary: { type: 'STRING' },
       skills: {
         type: 'ARRAY',
-        items: { type: 'STRING' }
+        items: {
+          type: 'OBJECT',
+          properties: {
+            category: { type: 'STRING', description: 'Skill category e.g. Frontend, Backend, Devops, Database, Languages' },
+            items: {
+              type: 'ARRAY',
+              items: { type: 'STRING' }
+            }
+          },
+          required: ['category', 'items']
+        }
       },
       workHistory: {
         type: 'ARRAY',
@@ -78,6 +88,7 @@ ${resumeText}`;
           properties: {
             company: { type: 'STRING' },
             title: { type: 'STRING' },
+            location: { type: 'STRING' },
             dates: { type: 'STRING' },
             bullets: {
               type: 'ARRAY',
@@ -92,16 +103,40 @@ ${resumeText}`;
         items: {
           type: 'OBJECT',
           properties: {
-            school: { type: 'STRING' },
+            institution: { type: 'STRING' },
             degree: { type: 'STRING' },
-            year: { type: 'STRING' }
+            field: { type: 'STRING' },
+            dates: { type: 'STRING' },
+            gpa: { type: 'STRING' },
+            achievements: { type: 'STRING' }
           },
-          required: ['school']
+          required: ['institution']
         }
       },
       certifications: {
         type: 'ARRAY',
         items: { type: 'STRING' }
+      },
+      projects: {
+        type: 'ARRAY',
+        items: {
+          type: 'OBJECT',
+          properties: {
+            name: { type: 'STRING' },
+            role: { type: 'STRING' },
+            tech: { type: 'STRING', description: 'Tech stack used in this project' },
+            link: { type: 'STRING' },
+            github: { type: 'STRING' },
+            dates: { type: 'STRING' },
+            status: { type: 'STRING', description: 'Completed or In Progress or Archived' },
+            description: { type: 'STRING' },
+            highlights: {
+              type: 'ARRAY',
+              items: { type: 'STRING' }
+            }
+          },
+          required: ['name']
+        }
       }
     },
     required: ['name', 'email', 'skills', 'workHistory']

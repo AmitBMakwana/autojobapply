@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "ApplyAI Assistant Extension",
+  "name": "JobForge AI AI Assistant",
   "version": "1.1",
   "description": "Scouts job details, calculates match scores, and autofills forms using Gemini on any webpage.",
   "permissions": [
@@ -24,7 +24,9 @@
       "matches": [
         "<all_urls>"
       ],
-      "js": ["content.js"],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_end"
     }
   ]

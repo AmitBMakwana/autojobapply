@@ -61,6 +61,61 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal Server Error: ' + err.message });
 });
 
+const prisma = require('./services/db');
+async function syncOnStartup() {
+  try {
+    let defaultResume = await prisma.resume.findFirst({ where: { isDefault: true } });
+    if (!defaultResume) {
+      defaultResume = await prisma.resume.findFirst();
+      if (defaultResume) {
+        defaultResume = await prisma.resume.update({
+          where: { id: defaultResume.id },
+          data: { isDefault: true }
+        });
+      }
+    }
+
+    if (defaultResume) {
+      await prisma.profile.upsert({
+        where: { id: 1 },
+        update: {
+          name: defaultResume.personName || '',
+          email: defaultResume.email || '',
+          phone: defaultResume.phone || '',
+          location: defaultResume.location || '',
+          summary: defaultResume.summary || '',
+          skills: defaultResume.skills || '[]',
+          workHistory: defaultResume.workHistory || '[]',
+          education: defaultResume.education || '[]',
+          certifications: defaultResume.certifications || '[]',
+          projects: defaultResume.projects || '[]',
+          additionalInfo: defaultResume.additionalInfo || '{}',
+          rawResumeText: defaultResume.rawResumeText || '',
+        },
+        create: {
+          id: 1,
+          name: defaultResume.personName || '',
+          email: defaultResume.email || '',
+          phone: defaultResume.phone || '',
+          location: defaultResume.location || '',
+          summary: defaultResume.summary || '',
+          skills: defaultResume.skills || '[]',
+          workHistory: defaultResume.workHistory || '[]',
+          education: defaultResume.education || '[]',
+          certifications: defaultResume.certifications || '[]',
+          projects: defaultResume.projects || '[]',
+          additionalInfo: defaultResume.additionalInfo || '{}',
+          rawResumeText: defaultResume.rawResumeText || '',
+        }
+      });
+      console.log('Successfully synced default resume to legacy profile table at server startup.');
+    }
+  } catch (err) {
+    console.error('Failed to sync legacy profile table at startup:', err);
+  }
+}
+syncOnStartup();
+
 app.listen(PORT, () => {
   console.log(`====================================================`);
   console.log(` Server is running on port ${PORT}`);

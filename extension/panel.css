@@ -1,0 +1,11 @@
+/* Loaded into the page, but all real UI lives inside a shadow root in content.js,
+   so host-page CSS cannot override these rules and vice versa. This file only
+   resets the shadow host element itself. */
+#jobforge-panel-host {
+  all: initial;
+  position: fixed !important;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  z-index: 2147483647;
+}

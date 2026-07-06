@@ -183,11 +183,12 @@ router.post('/manual', async (req, res) => {
   try {
     const { id, title, company, location, url, description, source } = req.body;
 
-    if (!title || !company) {
-      return res.status(400).json({ error: 'Title and Company are required.' });
+    if (!title) {
+      return res.status(400).json({ error: 'Title is required.' });
     }
 
-    const jobKey = id || `manual-${company.toLowerCase()}-${title.toLowerCase()}-${Date.now()}`;
+    const resolvedCompany = company || 'Unknown';
+    const jobKey = id || `manual-${resolvedCompany.toLowerCase()}-${title.toLowerCase()}-${Date.now()}`;
 
     // Check if exists
     let job = await prisma.job.findUnique({
@@ -199,7 +200,7 @@ router.post('/manual', async (req, res) => {
         data: {
           id: jobKey,
           title,
-          company,
+          company: resolvedCompany,
           location: location || 'Unknown',
           url,
           description: description || '',
